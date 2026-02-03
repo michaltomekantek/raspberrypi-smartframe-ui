@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Image as ImageIcon, X, Terminal, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Upload, X, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ImageUpload = () => {
@@ -15,8 +15,6 @@ const ImageUpload = () => {
   } | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Ustawiony na sztywno adres IP Twojej malinki
   const apiUrl = `http://192.168.0.194:8000/upload`;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,16 +28,55 @@ const ImageUpload = () => {
     }
   };
 
+  const processImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Skalowanie do max 800px szerokości (dla ekranu 800x400)
+        const MAX_WIDTH = 800;
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Kompresja do JPEG (jakość 0.7 jest idealna dla takich ekranów)
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Błąd konwersji canvas do Blob'));
+          },
+          'image/jpeg',
+          0.7
+        );
+      };
+      img.onerror = reject;
+    });
+  };
+
   const handleUpload = async () => {
     if (!file) return;
 
     setUploading(true);
     setDebugData(null);
     
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      // Przetwarzanie zdjęcia przed wysyłką
+      const processedBlob = await processImage(file);
+      
+      const formData = new FormData();
+      // Wysyłamy jako .jpg, aby serwer wiedział co to za plik
+      formData.append('file', processedBlob, 'photo.jpg');
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
@@ -56,7 +93,7 @@ const ImageUpload = () => {
       });
 
       if (isOk) {
-        toast.success("Zdjęcie wysłane pomyślnie!");
+        toast.success("Zdjęcie zoptymalizowane i wysłane!");
         setFile(null);
         setPreview(null);
         setShowLogs(false);
@@ -66,13 +103,13 @@ const ImageUpload = () => {
       }
     } catch (error: any) {
       setDebugData({
-        status: 'BŁĄD SIECI',
-        statusText: 'Network Error / CORS',
-        rawResponse: `Nie udało się połączyć z ${apiUrl}. Upewnij się, że serwer Python działa na 192.168.0.194.`,
+        status: 'BŁĄD',
+        statusText: 'Processing/Network Error',
+        rawResponse: error.message || "Błąd podczas przygotowania lub wysyłki zdjęcia.",
         isError: true
       });
       setShowLogs(true);
-      toast.error('Błąd połączenia z serwerem.');
+      toast.error('Wystąpił błąd.');
     } finally {
       setUploading(false);
     }
@@ -113,13 +150,13 @@ const ImageUpload = () => {
             className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all
               ${!file || uploading ? 'bg-zinc-800 text-zinc-500' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-900/20'}`}
           >
-            {uploading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : "WYŚLIJ DO RAMKI"}
+            {uploading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : "OPTYMALIZUJ I WYŚLIJ"}
           </button>
         </div>
       </div>
 
       <div className="text-[10px] text-zinc-500 text-center font-mono">
-        Target API: {apiUrl}
+        Target API: {apiUrl} (Auto-resize to 800px)
       </div>
 
       {debugData && (
