@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Upload, X, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, FileImage } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface ImageUploadProps {
@@ -10,6 +10,7 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [processedSize, setProcessedSize] = useState<string | null>(null);
   const [showLogs, setShowLogs] = useState(false);
   const [debugData, setDebugData] = useState<{
     status: string | number;
@@ -25,6 +26,7 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
     if (selectedFile) {
       setFile(selectedFile);
       setDebugData(null);
+      setProcessedSize(null);
       const reader = new FileReader();
       reader.onloadend = () => setPreview(reader.result as string);
       reader.readAsDataURL(selectedFile);
@@ -40,7 +42,7 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
         let width = img.width;
         let height = img.height;
 
-        // Zwiększamy limit do 1200px dla lepszej jakości na 7.5"
+        // Optymalizacja pod ekran 7.5"
         const MAX_WIDTH = 1200;
         if (width > MAX_WIDTH) {
           height = Math.round((height * MAX_WIDTH) / width);
@@ -51,17 +53,18 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          // Wygładzanie obrazu przy skalowaniu
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(img, 0, 0, width, height);
         }
 
-        // Wyższa jakość (0.9) dla zachowania detali
+        // Kompresja 0.9 dla zachowania balansu między jakością a rozmiarem
         canvas.toBlob(
           (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Błąd konwersji canvas do Blob'));
+            if (blob) {
+              setProcessedSize((blob.size / 1024).toFixed(1) + ' KB');
+              resolve(blob);
+            } else reject(new Error('Błąd konwersji'));
           },
           'image/jpeg',
           0.9
@@ -98,7 +101,7 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
       });
 
       if (isOk) {
-        toast.success("Zdjęcie wysłane w wysokiej jakości!");
+        toast.success("Zdjęcie zoptymalizowane i wysłane!");
         setFile(null);
         setPreview(null);
         setShowLogs(false);
@@ -133,11 +136,16 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
               <>
                 <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                 <button 
-                  onClick={(e) => { e.stopPropagation(); setFile(null); setPreview(null); }}
+                  onClick={(e) => { e.stopPropagation(); setFile(null); setPreview(null); setProcessedSize(null); }}
                   className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
                 >
                   <X size={20} />
                 </button>
+                {processedSize && (
+                  <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 rounded text-[10px] font-mono text-white flex items-center gap-1">
+                    <FileImage size={10} /> {processedSize}
+                  </div>
+                )}
               </>
             ) : (
               <div className="flex flex-col items-center text-zinc-400">
