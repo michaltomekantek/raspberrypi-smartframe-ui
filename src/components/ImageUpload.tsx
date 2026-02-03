@@ -16,9 +16,8 @@ const ImageUpload = () => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Automatycznie ustawiamy adres API na ten sam host, na którym jest strona, ale na porcie 8000
-  const apiHost = window.location.hostname;
-  const apiUrl = `http://${apiHost}:8000/upload`;
+  // Ustawiony na sztywno adres IP Twojej malinki
+  const apiUrl = `http://192.168.0.194:8000/upload`;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -69,7 +68,7 @@ const ImageUpload = () => {
       setDebugData({
         status: 'BŁĄD SIECI',
         statusText: 'Network Error / CORS',
-        rawResponse: `Nie udało się połączyć z ${apiUrl}. Upewnij się, że serwer Python działa.`,
+        rawResponse: `Nie udało się połączyć z ${apiUrl}. Upewnij się, że serwer Python działa na 192.168.0.194.`,
         isError: true
       });
       setShowLogs(true);

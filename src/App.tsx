@@ -15,7 +15,7 @@ function App() {
       <ImageUpload />
       
       <div className="mt-8 text-xs text-zinc-600">
-        Endpoint: <code className="bg-zinc-900 px-2 py-1 rounded">POST http://127.0.0.1:8000/upload</code>
+        Endpoint: <code className="bg-zinc-900 px-2 py-1 rounded">POST http://192.168.0.194:8000/upload</code>
       </div>
     </div>
   );
