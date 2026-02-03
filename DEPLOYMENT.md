@@ -1,37 +1,40 @@
-# Instrukcja wdrożenia na Raspberry Pi
+# Instrukcja dla Raspberry Pi Zero 2 W
 
 ## 1. Instalacja Node.js
-Jeśli jeszcze nie masz Node.js, zainstaluj go:
+Zalecam wersję LTS (np. 20):
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
-## 2. Budowanie projektu
-Przejdź do folderu z kodem i wykonaj:
+## 2. Zwiększenie pamięci SWAP (Ważne dla Pi Zero 2 W!)
+Budowanie projektu (npm install/build) na 512MB RAM może się zawiesić. Zwiększ tymczasowo pamięć wymiany:
+```bash
+sudo dphys-swapfile swapoff
+sudo nano /etc/dphys-swapfile
+# Zmień CONF_SWAPSIZE=100 na CONF_SWAPSIZE=1024
+sudo dphys-swapfile setup
+sudo dphys-swapfile swapon
+```
+
+## 3. Przygotowanie i budowanie
+W folderze z kodem:
 ```bash
 npm install
 npm run build
 ```
 Po zakończeniu powstanie folder `dist`.
 
-## 3. Uruchomienie aplikacji
-Możesz użyć lekkiego serwera `serve`:
+## 4. Uruchomienie serwera
+Zainstaluj lekki serwer `serve`:
 ```bash
-npx serve -s dist -l 3000
+sudo npm install -g serve
+# Uruchomienie na porcie 3000
+serve -s dist -l 3000
 ```
-Aplikacja będzie dostępna pod adresem IP Twojego Raspberry Pi na porcie 3000.
 
-## 4. Konfiguracja API
-W pliku `src/components/ImageUpload.tsx` znajdziesz linię:
-`const response = await fetch('http://127.0.0.1:8000/upload', ...`
+## 5. Dostęp do aplikacji
+Otwórz przeglądarkę na innym urządzeniu i wpisz:
+`http://<IP_TWOJEGO_PI>:3000`
 
-Jeśli planujesz wgrywać zdjęcia z innych urządzeń w tej samej sieci (np. smartfona), zmień `127.0.0.1` na adres IP swojego Raspberry Pi (np. `192.168.1.15`).
-
-## 5. Autostart (Opcjonalnie)
-Aby aplikacja startowała sama po włączeniu Pi, użyj `pm2`:
-```bash
-sudo npm install -g pm2
-pm2 start "npx serve -s dist -l 3000" --name smart-frame-ui
-pm2 save
-pm2 startup
+*Pamiętaj, aby Twój backend (serwer Python) również działał na tym samym Raspberry Pi na porcie 8000.*
