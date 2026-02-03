@@ -40,7 +40,8 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
         let width = img.width;
         let height = img.height;
 
-        const MAX_WIDTH = 800;
+        // Zwiększamy limit do 1200px dla lepszej jakości na 7.5"
+        const MAX_WIDTH = 1200;
         if (width > MAX_WIDTH) {
           height = Math.round((height * MAX_WIDTH) / width);
           width = MAX_WIDTH;
@@ -49,15 +50,21 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
+        if (ctx) {
+          // Wygładzanie obrazu przy skalowaniu
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, width, height);
+        }
 
+        // Wyższa jakość (0.9) dla zachowania detali
         canvas.toBlob(
           (blob) => {
             if (blob) resolve(blob);
             else reject(new Error('Błąd konwersji canvas do Blob'));
           },
           'image/jpeg',
-          0.7
+          0.9
         );
       };
       img.onerror = reject;
@@ -91,7 +98,7 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
       });
 
       if (isOk) {
-        toast.success("Zdjęcie zoptymalizowane i wysłane!");
+        toast.success("Zdjęcie wysłane w wysokiej jakości!");
         setFile(null);
         setPreview(null);
         setShowLogs(false);
@@ -148,7 +155,7 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
             className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all
               ${!file || uploading ? 'bg-zinc-800 text-zinc-500' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-900/20'}`}
           >
-            {uploading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : "OPTYMALIZUJ I WYŚLIJ"}
+            {uploading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : "WYŚLIJ DO RAMKI"}
           </button>
         </div>
       </div>
