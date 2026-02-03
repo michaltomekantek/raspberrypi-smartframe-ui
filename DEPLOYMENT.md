@@ -1,26 +1,26 @@
 # Uruchamianie na Raspberry Pi
 
-## Krok 0: Jeśli nie masz npm
-Zainstaluj Node.js i npm:
-```bash
-sudo apt update
-sudo apt install -y nodejs npm
-```
+## Krok 1: Przygotowanie folderu `dist`
+Folder `dist` zawiera gotową aplikację. Aby go stworzyć, musisz mieć zainstalowany `npm`.
 
-## Krok 1: Uruchomienie (Opcja A - przez npm)
-Zainstaluj serwer:
+**Na Raspberry Pi:**
 ```bash
-sudo npm install -g serve
+sudo apt update && sudo apt install -y nodejs npm
+npm install
+npm run build
 ```
-Uruchom:
-```bash
-serve -s dist -l 3000
-```
+Po tych komendach w Twoim folderze pojawi się katalog `dist`.
 
-## Krok 1: Uruchomienie (Opcja B - przez Python)
-Jeśli nie chcesz instalować npm, użyj wbudowanego serwera Python:
+## Krok 2: Uruchomienie strony (Opcja Python - najprostsza)
+Jeśli masz już folder `dist`, uruchom serwer:
 ```bash
 python3 -m http.server 3000 --directory dist
+```
+
+## Krok 3: Uruchomienie strony (Opcja npm - profesjonalna)
+```bash
+sudo npm install -g serve
+serve -s dist -l 3000
 ```
 
 ---
