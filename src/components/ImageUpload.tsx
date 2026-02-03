@@ -2,7 +2,11 @@ import React, { useState, useRef } from 'react';
 import { Upload, X, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const ImageUpload = () => {
+interface ImageUploadProps {
+  apiUrl: string;
+}
+
+const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -15,7 +19,6 @@ const ImageUpload = () => {
   } | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const apiUrl = `http://192.168.0.194:8000/upload`;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -37,7 +40,6 @@ const ImageUpload = () => {
         let width = img.width;
         let height = img.height;
 
-        // Skalowanie do max 800px szerokości (dla ekranu 800x400)
         const MAX_WIDTH = 800;
         if (width > MAX_WIDTH) {
           height = Math.round((height * MAX_WIDTH) / width);
@@ -49,7 +51,6 @@ const ImageUpload = () => {
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
 
-        // Kompresja do JPEG (jakość 0.7 jest idealna dla takich ekranów)
         canvas.toBlob(
           (blob) => {
             if (blob) resolve(blob);
@@ -70,11 +71,8 @@ const ImageUpload = () => {
     setDebugData(null);
     
     try {
-      // Przetwarzanie zdjęcia przed wysyłką
       const processedBlob = await processImage(file);
-      
       const formData = new FormData();
-      // Wysyłamy jako .jpg, aby serwer wiedział co to za plik
       formData.append('file', processedBlob, 'photo.jpg');
 
       const response = await fetch(apiUrl, {
@@ -104,12 +102,12 @@ const ImageUpload = () => {
     } catch (error: any) {
       setDebugData({
         status: 'BŁĄD',
-        statusText: 'Processing/Network Error',
-        rawResponse: error.message || "Błąd podczas przygotowania lub wysyłki zdjęcia.",
+        statusText: 'Network Error',
+        rawResponse: error.message || "Błąd połączenia z API.",
         isError: true
       });
       setShowLogs(true);
-      toast.error('Wystąpił błąd.');
+      toast.error('Wystąpił błąd połączenia.');
     } finally {
       setUploading(false);
     }
@@ -153,10 +151,6 @@ const ImageUpload = () => {
             {uploading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : "OPTYMALIZUJ I WYŚLIJ"}
           </button>
         </div>
-      </div>
-
-      <div className="text-[10px] text-zinc-500 text-center font-mono">
-        Target API: {apiUrl} (Auto-resize to 800px)
       </div>
 
       {debugData && (
