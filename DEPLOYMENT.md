@@ -1,25 +1,12 @@
-# Instrukcja dla Raspberry Pi (Gotowa Paczka)
+# Szybkie uruchamianie na Raspberry Pi
 
-Ta instrukcja zakłada, że zbudowałeś projekt wcześniej (`npm run build`) i przesłałeś folder `dist` na Raspberry Pi.
+Jeśli masz już folder `dist` na malince, wykonaj:
 
-## 1. Instalacja Node.js
-Jeśli jeszcze nie masz Node.js na malince:
-```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
-
-## 2. Uruchomienie serwera
-Na Raspberry Pi nie potrzebujesz już `npm install` ani `npm run build`. Wystarczy zainstalować lekki serwer i wskazać folder `dist`:
-
-```bash
+1. Instalacja serwera:
 sudo npm install -g serve
-# Przejdź do folderu z projektem i uruchom:
+
+2. Uruchomienie:
 serve -s dist -l 3000
-```
 
-## 3. Dostęp
-Aplikacja jest dostępna pod adresem: `http://<IP_TWOJEGO_PI>:3000`
-
----
-**Zaleta:** Oszczędzasz czas i RAM na Raspberry Pi. Pamiętaj tylko, aby po każdej zmianie w kodzie uruchomić `npm run build` przed wysłaniem plików na malinkę.
+Aplikacja będzie dostępna pod adresem IP Twojej malinki na porcie 3000.
+Pamiętaj o uruchomieniu backendu Python na porcie 8000!
