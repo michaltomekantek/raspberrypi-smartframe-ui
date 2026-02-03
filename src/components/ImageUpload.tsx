@@ -16,6 +16,10 @@ const ImageUpload = () => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Automatycznie ustawiamy adres API na ten sam host, na którym jest strona, ale na porcie 8000
+  const apiHost = window.location.hostname;
+  const apiUrl = `http://${apiHost}:8000/upload`;
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
@@ -37,7 +41,7 @@ const ImageUpload = () => {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/upload', {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         body: formData,
       });
@@ -56,20 +60,20 @@ const ImageUpload = () => {
         toast.success("Zdjęcie wysłane pomyślnie!");
         setFile(null);
         setPreview(null);
-        setShowLogs(false); // Ukryj logi przy sukcesie
+        setShowLogs(false);
       } else {
         toast.error(`Błąd serwera: ${response.status}`);
-        setShowLogs(true); // Pokaż logi przy błędzie
+        setShowLogs(true);
       }
     } catch (error: any) {
       setDebugData({
         status: 'BŁĄD SIECI',
         statusText: 'Network Error / CORS',
-        rawResponse: error.message || 'Brak połączenia z serwerem 127.0.0.1:8000',
+        rawResponse: `Nie udało się połączyć z ${apiUrl}. Upewnij się, że serwer Python działa.`,
         isError: true
       });
       setShowLogs(true);
-      toast.error('Nie udało się połączyć z serwerem.');
+      toast.error('Błąd połączenia z serwerem.');
     } finally {
       setUploading(false);
     }
@@ -115,6 +119,10 @@ const ImageUpload = () => {
         </div>
       </div>
 
+      <div className="text-[10px] text-zinc-500 text-center font-mono">
+        Target API: {apiUrl}
+      </div>
+
       {debugData && (
         <div className={`rounded-xl border overflow-hidden transition-all ${debugData.isError ? 'border-red-900/50 bg-red-950/10' : 'border-emerald-900/50 bg-emerald-950/10'}`}>
           <button 
@@ -124,7 +132,7 @@ const ImageUpload = () => {
             <div className="flex items-center gap-2">
               {debugData.isError ? <AlertCircle size={14} className="text-red-500" /> : <CheckCircle2 size={14} className="text-emerald-500" />}
               <span className={debugData.isError ? 'text-red-400' : 'text-emerald-400'}>
-                Status: {debugData.status} {debugData.statusText}
+                Status: {debugData.status}
               </span>
             </div>
             {showLogs ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -133,7 +141,7 @@ const ImageUpload = () => {
           {showLogs && (
             <div className="px-4 pb-4 animate-in slide-in-from-top-1 duration-200">
               <div className="p-3 bg-black/50 rounded-lg border border-zinc-800 font-mono text-[10px] text-zinc-400 overflow-x-auto">
-                <p className="mb-2 text-zinc-500">// Odpowiedź serwera:</p>
+                <p className="mb-2 text-zinc-500">// Logi połączenia:</p>
                 <pre className="whitespace-pre-wrap break-all">
                   {debugData.rawResponse || "(Brak treści)"}
                 </pre>
