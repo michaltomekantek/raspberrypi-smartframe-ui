@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Image as ImageIcon, X, Terminal } from 'lucide-react';
+import { Upload, Image as ImageIcon, X, Terminal, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ImageUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [statusInfo, setStatusInfo] = useState<{ code: number | string; text: string } | null>(null);
   const [uploadResponse, setUploadResponse] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -18,6 +19,7 @@ const ImageUpload = () => {
       }
       setFile(selectedFile);
       setUploadResponse(null);
+      setStatusInfo(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
@@ -31,6 +33,8 @@ const ImageUpload = () => {
 
     setUploading(true);
     setUploadResponse(null);
+    setStatusInfo(null);
+    
     const formData = new FormData();
     formData.append('file', file);
 
@@ -40,25 +44,27 @@ const ImageUpload = () => {
         body: formData,
       });
 
+      setStatusInfo({ code: response.status, text: response.statusText });
       const data = await response.text();
       
       try {
-        // Próba sformatowania jako JSON dla lepszej czytelności
         const jsonData = JSON.parse(data);
         setUploadResponse(JSON.stringify(jsonData, null, 2));
       } catch {
-        setUploadResponse(data);
+        setUploadResponse(data || "(Pusta odpowiedź)");
       }
 
       if (response.ok) {
-        toast.success('Zdjęcie zostało wgrane pomyślnie!');
+        toast.success(`Wgrano pomyślnie (Status: ${response.status})`);
         setFile(null);
         setPreview(null);
       } else {
-        throw new Error('Błąd serwera');
+        toast.error(`Błąd serwera: ${response.status}`);
       }
-    } catch (error) {
-      toast.error('Nie udało się wgrać zdjęcia.');
+    } catch (error: any) {
+      setStatusInfo({ code: 'NETWORK_ERROR', text: 'Błąd połączenia z serwerem' });
+      setUploadResponse(error.message || "Nie można nawiązać połączenia z http://127.0.0.1:8000. Upewnij się, że serwer działa i obsługuje CORS.");
+      toast.error('Błąd sieciowy.');
       console.error('Upload error:', error);
     } finally {
       setUploading(false);
@@ -69,6 +75,7 @@ const ImageUpload = () => {
     setFile(null);
     setPreview(null);
     setUploadResponse(null);
+    setStatusInfo(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -128,15 +135,24 @@ const ImageUpload = () => {
         </div>
       </div>
 
-      {uploadResponse && (
+      {(statusInfo || uploadResponse) && (
         <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800 animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center gap-2 text-zinc-400 text-xs font-medium mb-2 uppercase tracking-wider">
-            <Terminal size={14} />
-            Odpowiedź serwera
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 text-zinc-400 text-xs font-medium uppercase tracking-wider">
+              <Terminal size={14} />
+              Status: <span className={statusInfo?.code === 200 ? "text-emerald-400" : "text-red-400"}>
+                {statusInfo?.code} {statusInfo?.text}
+              </span>
+            </div>
           </div>
-          <pre className="text-xs font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap break-all">
-            {uploadResponse}
-          </pre>
+          
+          {uploadResponse && (
+            <div className="relative">
+              <pre className="text-xs font-mono text-zinc-300 bg-black/30 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all border border-zinc-800/50">
+                {uploadResponse}
+              </pre>
+            </div>
+          )}
         </div>
       )}
     </div>
