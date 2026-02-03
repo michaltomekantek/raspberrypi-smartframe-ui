@@ -7,7 +7,8 @@ node_modules/
 coverage/
 
 # Production
-# dist/  <-- Zakomentowane, aby móc commitować zbudowane pliki
+# dist/  <-- Zostawiamy zakomentowane, jeśli faktycznie chcesz commitować zbudowane pliki
+dist/
 
 # Misc
 .DS_Store
@@ -15,6 +16,7 @@ coverage/
 .env.development.local
 .env.test.local
 .env.production.local
+Thumbs.db
 
 # Logs
 npm-debug.log*
