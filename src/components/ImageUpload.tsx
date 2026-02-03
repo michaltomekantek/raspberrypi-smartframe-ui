@@ -1,29 +1,29 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Image as ImageIcon, X, Terminal, AlertCircle } from 'lucide-react';
+import { Upload, Image as ImageIcon, X, Terminal, Bug, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ImageUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [statusInfo, setStatusInfo] = useState<{ code: number | string; text: string } | null>(null);
-  const [uploadResponse, setUploadResponse] = useState<string | null>(null);
+  const [debugData, setDebugData] = useState<{
+    status: string | number;
+    statusText: string;
+    url: string;
+    method: string;
+    rawResponse: string;
+    errorDetails?: string;
+  } | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (!selectedFile.type.startsWith('image/')) {
-        toast.error('Proszę wybrać plik graficzny');
-        return;
-      }
       setFile(selectedFile);
-      setUploadResponse(null);
-      setStatusInfo(null);
+      setDebugData(null);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
+      reader.onloadend = () => setPreview(reader.result as string);
       reader.readAsDataURL(selectedFile);
     }
   };
@@ -32,55 +32,54 @@ const ImageUpload = () => {
     if (!file) return;
 
     setUploading(true);
-    setUploadResponse(null);
-    setStatusInfo(null);
+    setDebugData(null);
     
+    const url = 'http://127.0.0.1:8000/upload';
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/upload', {
+      const response = await fetch(url, {
         method: 'POST',
         body: formData,
       });
 
-      setStatusInfo({ code: response.status, text: response.statusText });
-      const data = await response.text();
+      const text = await response.text();
       
-      try {
-        const jsonData = JSON.parse(data);
-        setUploadResponse(JSON.stringify(jsonData, null, 2));
-      } catch {
-        setUploadResponse(data || "(Pusta odpowiedź)");
-      }
+      setDebugData({
+        status: response.status,
+        statusText: response.statusText,
+        url: url,
+        method: 'POST',
+        rawResponse: text
+      });
 
       if (response.ok) {
-        toast.success(`Wgrano pomyślnie (Status: ${response.status})`);
+        toast.success(`Sukces: ${response.status}`);
         setFile(null);
         setPreview(null);
       } else {
-        toast.error(`Błąd serwera: ${response.status}`);
+        toast.error(`Serwer zwrócił błąd: ${response.status}`);
       }
     } catch (error: any) {
-      setStatusInfo({ code: 'NETWORK_ERROR', text: 'Błąd połączenia z serwerem' });
-      setUploadResponse(error.message || "Nie można nawiązać połączenia z http://127.0.0.1:8000. Upewnij się, że serwer działa i obsługuje CORS.");
-      toast.error('Błąd sieciowy.');
-      console.error('Upload error:', error);
+      // To się wykona jeśli jest błąd sieciowy (np. brak CORS lub serwer wyłączony)
+      setDebugData({
+        status: 'FETCH_ERROR',
+        statusText: 'Błąd krytyczny / Sieć',
+        url: url,
+        method: 'POST',
+        rawResponse: 'Brak odpowiedzi z serwera (prawdopodobnie CORS lub serwer nie działa)',
+        errorDetails: `${error.name}: ${error.message}\n\nMożliwe przyczyny:\n1. Serwer na porcie 8000 nie działa.\n2. Brak nagłówków CORS (Access-Control-Allow-Origin) na serwerze.\n3. Przeglądarka blokuje zapytanie do localhost.`
+      });
+      toast.error('Błąd połączenia. Sprawdź konsolę i debugera.');
+      console.error('Pełny obiekt błędu:', error);
     } finally {
       setUploading(false);
     }
   };
 
-  const clearSelection = () => {
-    setFile(null);
-    setPreview(null);
-    setUploadResponse(null);
-    setStatusInfo(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
   return (
-    <div className="w-full max-w-md flex flex-col gap-4">
+    <div className="w-full max-w-2xl flex flex-col gap-4">
       <div className="p-6 bg-zinc-900 rounded-2xl border border-zinc-800 shadow-xl">
         <div className="flex flex-col items-center gap-6">
           <div 
@@ -92,7 +91,7 @@ const ImageUpload = () => {
               <>
                 <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                 <button 
-                  onClick={(e) => { e.stopPropagation(); clearSelection(); }}
+                  onClick={(e) => { e.stopPropagation(); setFile(null); setPreview(null); }}
                   className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
                 >
                   <X size={20} />
@@ -101,58 +100,59 @@ const ImageUpload = () => {
             ) : (
               <div className="flex flex-col items-center text-zinc-400">
                 <Upload size={40} className="mb-2" />
-                <p className="text-sm font-medium">Kliknij, aby wybrać zdjęcie</p>
-                <p className="text-xs text-zinc-500 mt-1">JPG, PNG, GIF</p>
+                <p className="text-sm font-medium">Wybierz zdjęcie do testu</p>
               </div>
             )}
           </div>
 
-          <input 
-            type="file" 
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
-          />
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
           <button
             onClick={handleUpload}
             disabled={!file || uploading}
-            className={`w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all
-              ${!file || uploading 
-                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
-                : 'bg-white text-black hover:bg-zinc-200 active:scale-[0.98]'}`}
+            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all
+              ${!file || uploading ? 'bg-zinc-800 text-zinc-500' : 'bg-blue-600 text-white hover:bg-blue-500'}`}
           >
-            {uploading ? (
-              <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-            ) : (
-              <>
-                <ImageIcon size={20} />
-                Wgraj zdjęcie
-              </>
-            )}
+            {uploading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : "WYŚLIJ I POKAŻ LOGI"}
           </button>
         </div>
       </div>
 
-      {(statusInfo || uploadResponse) && (
-        <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800 animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs font-medium uppercase tracking-wider">
-              <Terminal size={14} />
-              Status: <span className={statusInfo?.code === 200 ? "text-emerald-400" : "text-red-400"}>
-                {statusInfo?.code} {statusInfo?.text}
-              </span>
+      {debugData && (
+        <div className="p-4 bg-black rounded-xl border border-zinc-700 font-mono text-[11px]">
+          <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
+            <div className="flex items-center gap-2 text-zinc-400 uppercase tracking-tighter">
+              <Bug size={14} />
+              <span>Raport Diagnostyczny</span>
+            </div>
+            <div className={`px-2 py-0.5 rounded ${debugData.status === 200 ? 'bg-emerald-900 text-emerald-300' : 'bg-red-900 text-red-300'}`}>
+              STATUS: {debugData.status}
             </div>
           </div>
-          
-          {uploadResponse && (
-            <div className="relative">
-              <pre className="text-xs font-mono text-zinc-300 bg-black/30 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap break-all border border-zinc-800/50">
-                {uploadResponse}
+
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <p className="text-zinc-500 mb-1">// Request Info</p>
+              <p className="text-zinc-300">{debugData.method} {debugData.url}</p>
+              <p className="text-zinc-300">Status Text: {debugData.statusText}</p>
+            </div>
+
+            {debugData.errorDetails && (
+              <div className="bg-red-950/30 p-3 rounded border border-red-900/50">
+                <p className="text-red-400 flex items-center gap-1 mb-1">
+                  <AlertTriangle size={12} /> BŁĄD WYJĄTKU (JS EXCEPTION):
+                </p>
+                <pre className="text-red-300 whitespace-pre-wrap">{debugData.errorDetails}</pre>
+              </div>
+            )}
+
+            <div>
+              <p className="text-zinc-500 mb-1">// Server Response Body</p>
+              <pre className="bg-zinc-900 p-3 rounded border border-zinc-800 text-zinc-300 overflow-x-auto">
+                {debugData.rawResponse || "(Brak treści odpowiedzi)"}
               </pre>
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>
