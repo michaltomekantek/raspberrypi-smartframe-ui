@@ -1,6 +1,8 @@
 "use client";
 
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { Upload } from 'lucide-react';
 import Clock from '../components/Clock';
 import Weather from '../components/Weather';
 import Calendar from '../components/Calendar';
@@ -15,20 +17,25 @@ const Dashboard = () => {
         <div className="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-purple-500/10 blur-[120px] rounded-full" />
       </div>
 
+      {/* Navigation Link to Upload */}
+      <div className="absolute top-8 right-8 z-20">
+        <Link to="/upload" className="p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors flex items-center gap-2 text-sm">
+          <Upload size={18} />
+          <span>Wgraj zdjęcie</span>
+        </Link>
+      </div>
+
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-6xl">
-        {/* Left Column: Weather & Calendar */}
         <div className="flex flex-col gap-6 order-2 lg:order-1">
           <Weather />
           <Calendar />
         </div>
 
-        {/* Center Column: Clock & Quote */}
         <div className="flex flex-col items-center justify-center gap-12 order-1 lg:order-2">
           <Clock />
           <Quote />
         </div>
 
-        {/* Right Column: Placeholder for future widgets (e.g., Smart Home, News) */}
         <div className="flex flex-col gap-6 order-3">
           <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm h-full flex flex-col items-center justify-center text-center">
             <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Smart Home</h2>
