@@ -1,12 +1,27 @@
-# Szybkie uruchamianie na Raspberry Pi
+# Uruchamianie na Raspberry Pi
 
-Jeśli masz już folder `dist` na malince, wykonaj:
+## Krok 0: Jeśli nie masz npm
+Zainstaluj Node.js i npm:
+```bash
+sudo apt update
+sudo apt install -y nodejs npm
+```
 
-1. Instalacja serwera:
+## Krok 1: Uruchomienie (Opcja A - przez npm)
+Zainstaluj serwer:
+```bash
 sudo npm install -g serve
-
-2. Uruchomienie:
+```
+Uruchom:
+```bash
 serve -s dist -l 3000
+```
 
-Aplikacja będzie dostępna pod adresem IP Twojej malinki na porcie 3000.
-Pamiętaj o uruchomieniu backendu Python na porcie 8000!
+## Krok 1: Uruchomienie (Opcja B - przez Python)
+Jeśli nie chcesz instalować npm, użyj wbudowanego serwera Python:
+```bash
+python3 -m http.server 3000 --directory dist
+```
+
+---
+**Pamiętaj:** Backend (skrypt Python z API) musi działać równolegle na porcie 8000!
