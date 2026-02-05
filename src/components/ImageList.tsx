@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, CheckCircle2, XCircle, RefreshCw, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Clock, CheckCircle2, XCircle, RefreshCw, Image as ImageIcon, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface ImageItem {
@@ -40,7 +40,6 @@ const ImageList = ({ apiUrl, baseUrl }: ImageListProps) => {
       const response = await fetch(`${baseUrl}/settings/interval`);
       if (response.ok) {
         const data = await response.json();
-        // Zakładamy, że API zwraca obiekt { seconds: X } lub po prostu liczbę
         const seconds = typeof data === 'object' ? data.seconds : data;
         setIntervalSeconds(seconds);
       }
@@ -62,6 +61,23 @@ const ImageList = ({ apiUrl, baseUrl }: ImageListProps) => {
       toast.success(newStatus ? "Zdjęcie aktywowane" : "Zdjęcie ukryte");
     } catch (error) {
       toast.error("Błąd zmiany statusu");
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Czy na pewno chcesz usunąć to zdjęcie?")) return;
+    
+    try {
+      const response = await fetch(`${baseUrl}/images/${id}`, {
+        method: 'DELETE',
+        headers: { 'accept': 'application/json' }
+      });
+      if (!response.ok) throw new Error('Błąd usuwania');
+      
+      setImages(images.filter(img => img.id !== id));
+      toast.success("Zdjęcie zostało usunięte");
+    } catch (error) {
+      toast.error("Błąd podczas usuwania zdjęcia");
     }
   };
 
@@ -137,12 +153,23 @@ const ImageList = ({ apiUrl, baseUrl }: ImageListProps) => {
                 </p>
               </div>
 
-              <button
-                onClick={() => toggleActive(img.id, img.is_active)}
-                className={`p-3 rounded-xl transition-all ${img.is_active ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-zinc-600 hover:bg-zinc-800'}`}
-              >
-                {img.is_active ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => toggleActive(img.id, img.is_active)}
+                  className={`p-3 rounded-xl transition-all ${img.is_active ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-zinc-600 hover:bg-zinc-800'}`}
+                  title={img.is_active ? "Ukryj" : "Pokaż"}
+                >
+                  {img.is_active ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
+                </button>
+                
+                <button
+                  onClick={() => handleDelete(img.id)}
+                  className="p-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-all"
+                  title="Usuń"
+                >
+                  <Trash2 size={24} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
