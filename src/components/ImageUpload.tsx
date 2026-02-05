@@ -42,23 +42,28 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
         let width = img.width;
         let height = img.height;
 
-        // Optymalizacja pod ekran 7.5"
-        const MAX_WIDTH = 1200;
-        if (width > MAX_WIDTH) {
-          height = Math.round((height * MAX_WIDTH) / width);
-          width = MAX_WIDTH;
+        // Optymalizacja pod ekran Waveshare 7" (1024x600)
+        const MAX_WIDTH = 1024;
+        const MAX_HEIGHT = 600;
+
+        let targetWidth = width;
+        let targetHeight = height;
+
+        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+          const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+          targetWidth = Math.round(width * ratio);
+          targetHeight = Math.round(height * ratio);
         }
 
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(img, 0, 0, width, height);
+          ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
         }
 
-        // Kompresja 0.9 dla zachowania balansu między jakością a rozmiarem
         canvas.toBlob(
           (blob) => {
             if (blob) {
@@ -143,7 +148,7 @@ const ImageUpload = ({ apiUrl }: ImageUploadProps) => {
                 </button>
                 {processedSize && (
                   <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 rounded text-[10px] font-mono text-white flex items-center gap-1">
-                    <FileImage size={10} /> {processedSize}
+                    <FileImage size={10} /> {processedSize} (1024x600 max)
                   </div>
                 )}
               </>
