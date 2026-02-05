@@ -7,13 +7,24 @@ import DeviceInfo from './components/DeviceInfo';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'upload' | 'info'>('upload');
-  const [apiUrl, setApiUrl] = useState(() => {
-    return localStorage.getItem('smartframe_api_url') || 'http://192.168.0.194:8000/upload';
+  
+  // Niezależne stany dla obu adresów
+  const [uploadUrl, setUploadUrl] = useState(() => {
+    return localStorage.getItem('smartframe_upload_url') || 'http://192.168.0.194:8000/upload';
+  });
+  
+  const [infoUrl, setInfoUrl] = useState(() => {
+    return localStorage.getItem('smartframe_info_url') || 'http://192.168.0.194:8000/system-info';
   });
 
+  // Zapisywanie zmian w localStorage
   useEffect(() => {
-    localStorage.setItem('smartframe_api_url', apiUrl);
-  }, [apiUrl]);
+    localStorage.setItem('smartframe_upload_url', uploadUrl);
+  }, [uploadUrl]);
+
+  useEffect(() => {
+    localStorage.setItem('smartframe_info_url', infoUrl);
+  }, [infoUrl]);
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center p-4 pt-12">
@@ -25,8 +36,11 @@ function App() {
       </div>
 
       <div className="w-full max-w-xl flex flex-col items-center gap-6">
-        {/* Ustawienia adresu są teraz zawsze na górze */}
-        <EndpointSettings apiUrl={apiUrl} onUrlChange={setApiUrl} />
+        {/* Ustawienia adresu zmieniają się w zależności od aktywnej zakładki */}
+        <EndpointSettings 
+          apiUrl={activeTab === 'upload' ? uploadUrl : infoUrl} 
+          onUrlChange={activeTab === 'upload' ? setUploadUrl : setInfoUrl} 
+        />
 
         {/* Tab Switcher */}
         <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full">
@@ -49,9 +63,9 @@ function App() {
         </div>
 
         {activeTab === 'upload' ? (
-          <ImageUpload apiUrl={apiUrl} />
+          <ImageUpload apiUrl={uploadUrl} />
         ) : (
-          <DeviceInfo apiUrl={apiUrl} />
+          <DeviceInfo apiUrl={infoUrl} />
         )}
       </div>
       

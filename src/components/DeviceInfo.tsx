@@ -26,15 +26,8 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
     setLoading(true);
     setError(null);
     try {
-      // Inteligentne budowanie adresu: usuwamy znane końcówki i slash na końcu
-      const cleanBase = apiUrl
-        .replace(/\/upload$/, '')
-        .replace(/\/system-info$/, '')
-        .replace(/\/$/, '');
-      
-      const infoUrl = `${cleanBase}/system-info`;
-      
-      const response = await fetch(infoUrl);
+      // Teraz używamy adresu bezpośrednio, bo każda zakładka ma swój własny
+      const response = await fetch(apiUrl);
       if (!response.ok) throw new Error(`Błąd serwera: ${response.status}`);
       
       const data = await response.json();
