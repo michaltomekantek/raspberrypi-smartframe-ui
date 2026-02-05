@@ -36,13 +36,7 @@ function App() {
       </div>
 
       <div className="w-full max-w-xl flex flex-col items-center gap-6">
-        {/* Ustawienia adresu zmieniają się w zależności od aktywnej zakładki */}
-        <EndpointSettings 
-          apiUrl={activeTab === 'upload' ? uploadUrl : infoUrl} 
-          onUrlChange={activeTab === 'upload' ? setUploadUrl : setInfoUrl} 
-        />
-
-        {/* Tab Switcher */}
+        {/* Tab Switcher na górze */}
         <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full">
           <button
             onClick={() => setActiveTab('upload')}
@@ -62,10 +56,17 @@ function App() {
           </button>
         </div>
 
+        {/* Treść zakładki - teraz zawiera własne ustawienia adresu */}
         {activeTab === 'upload' ? (
-          <ImageUpload apiUrl={uploadUrl} />
+          <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
+            <EndpointSettings apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
+            <ImageUpload apiUrl={uploadUrl} />
+          </div>
         ) : (
-          <DeviceInfo apiUrl={infoUrl} />
+          <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
+            <EndpointSettings apiUrl={infoUrl} onUrlChange={setInfoUrl} />
+            <DeviceInfo apiUrl={infoUrl} />
+          </div>
         )}
       </div>
       
