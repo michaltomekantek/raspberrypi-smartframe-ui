@@ -5,24 +5,40 @@ import ImageUpload from './components/ImageUpload';
 import EndpointSettings from './components/EndpointSettings';
 import DeviceInfo from './components/DeviceInfo';
 import ShowStats from './components/ShowStats';
+import GlobalIpSettings from './components/GlobalIpSettings';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats'>('upload');
   
-  // Niezależne stany dla wszystkich adresów
+  // Globalne IP
+  const [globalIp, setGlobalIp] = useState(() => {
+    return localStorage.getItem('smartframe_global_ip') || 'localhost';
+  });
+
+  // Niezależne stany dla wszystkich adresów (przechowują surowe stringi, np. z localhost)
   const [uploadUrl, setUploadUrl] = useState(() => {
-    return localStorage.getItem('smartframe_upload_url') || 'http://192.168.0.194:8000/upload';
+    return localStorage.getItem('smartframe_upload_url') || 'http://localhost:8000/upload';
   });
   
   const [infoUrl, setInfoUrl] = useState(() => {
-    return localStorage.getItem('smartframe_info_url') || 'http://192.168.0.194:8000/system-info';
+    return localStorage.getItem('smartframe_info_url') || 'http://localhost:8000/system-info';
   });
 
   const [statsUrl, setStatsUrl] = useState(() => {
     return localStorage.getItem('smartframe_stats_url') || 'http://localhost:8000/show-stats';
   });
 
+  // Funkcja pomocnicza do podmieniania localhost na globalne IP
+  const resolveUrl = (url: string) => {
+    if (!globalIp) return url;
+    return url.replace(/localhost|127\.0\.0\.1/g, globalIp);
+  };
+
   // Zapisywanie zmian w localStorage
+  useEffect(() => {
+    localStorage.setItem('smartframe_global_ip', globalIp);
+  }, [globalIp]);
+
   useEffect(() => {
     localStorage.setItem('smartframe_upload_url', uploadUrl);
   }, [uploadUrl]);
@@ -44,9 +60,12 @@ function App() {
         <p className="text-zinc-400">Zarządzaj swoją ramką Raspberry Pi</p>
       </div>
 
-      <div className="w-full max-w-xl flex flex-col items-center gap-6">
+      <div className="w-full max-w-xl flex flex-col items-center gap-2">
+        {/* Globalne ustawienie IP */}
+        <GlobalIpSettings globalIp={globalIp} onIpChange={setGlobalIp} />
+
         {/* Tab Switcher */}
-        <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full">
+        <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full mb-4">
           <button
             onClick={() => setActiveTab('upload')}
             className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all
@@ -73,25 +92,34 @@ function App() {
           </button>
         </div>
 
-        {/* Treść zakładki */}
+        {/* Treść zakładki - przekazujemy rozwiązany URL do komponentów wykonawczych */}
         {activeTab === 'upload' && (
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
             <EndpointSettings apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
-            <ImageUpload apiUrl={uploadUrl} />
+            <div className="text-[10px] font-mono text-zinc-600 px-4 -mt-2">
+              Aktywny endpoint: {resolveUrl(uploadUrl)}
+            </div>
+            <ImageUpload apiUrl={resolveUrl(uploadUrl)} />
           </div>
         )}
 
         {activeTab === 'info' && (
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
             <EndpointSettings apiUrl={infoUrl} onUrlChange={setInfoUrl} />
-            <DeviceInfo apiUrl={infoUrl} />
+            <div className="text-[10px] font-mono text-zinc-600 px-4 -mt-2">
+              Aktywny endpoint: {resolveUrl(infoUrl)}
+            </div>
+            <DeviceInfo apiUrl={resolveUrl(infoUrl)} />
           </div>
         )}
 
         {activeTab === 'stats' && (
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
             <EndpointSettings apiUrl={statsUrl} onUrlChange={setStatsUrl} />
-            <ShowStats apiUrl={statsUrl} />
+            <div className="text-[10px] font-mono text-zinc-600 px-4 -mt-2">
+              Aktywny endpoint: {resolveUrl(statsUrl)}
+            </div>
+            <ShowStats apiUrl={resolveUrl(statsUrl)} />
           </div>
         )}
       </div>
