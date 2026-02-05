@@ -20,7 +20,11 @@ const ShowStats = ({ apiUrl }: ShowStatsProps) => {
     setDebugData(null);
     
     try {
-      const response = await fetch(apiUrl);
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'accept': 'application/json' },
+        body: ''
+      });
       const text = await response.text();
       const isOk = response.ok;
       

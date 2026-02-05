@@ -12,7 +12,7 @@ interface ImageItem {
 
 interface ImageListProps {
   apiUrl: string;
-  baseUrl: string; // Potrzebne do endpointów settings i patch
+  baseUrl: string;
 }
 
 const ImageList = ({ apiUrl, baseUrl }: ImageListProps) => {
@@ -32,6 +32,20 @@ const ImageList = ({ apiUrl, baseUrl }: ImageListProps) => {
       toast.error("Nie udało się pobrać listy zdjęć");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInterval = async () => {
+    try {
+      const response = await fetch(`${baseUrl}/settings/interval`);
+      if (response.ok) {
+        const data = await response.json();
+        // Zakładamy, że API zwraca obiekt { seconds: X } lub po prostu liczbę
+        const seconds = typeof data === 'object' ? data.seconds : data;
+        setIntervalSeconds(seconds);
+      }
+    } catch (error) {
+      console.error("Nie udało się pobrać interwału");
     }
   };
 
@@ -68,11 +82,11 @@ const ImageList = ({ apiUrl, baseUrl }: ImageListProps) => {
 
   useEffect(() => {
     fetchImages();
-  }, [apiUrl]);
+    fetchInterval();
+  }, [apiUrl, baseUrl]);
 
   return (
     <div className="w-full flex flex-col gap-6">
-      {/* Ustawienia interwału */}
       <div className="p-6 bg-zinc-900 rounded-2xl border border-zinc-800 shadow-xl">
         <div className="flex items-center gap-3 mb-4 text-blue-400">
           <Clock size={20} />
@@ -96,7 +110,6 @@ const ImageList = ({ apiUrl, baseUrl }: ImageListProps) => {
         </div>
       </div>
 
-      {/* Lista zdjęć */}
       <div className="flex items-center justify-between px-2">
         <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Biblioteka Zdjęć ({images.length})</h3>
         <button onClick={fetchImages} className="p-2 text-zinc-500 hover:text-white transition-colors">
