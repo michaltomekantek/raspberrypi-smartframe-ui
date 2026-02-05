@@ -10,12 +10,10 @@ import GlobalIpSettings from './components/GlobalIpSettings';
 function App() {
   const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats'>('upload');
   
-  // Globalne IP
   const [globalIp, setGlobalIp] = useState(() => {
     return localStorage.getItem('smartframe_global_ip') || 'localhost';
   });
 
-  // Niezależne stany dla wszystkich adresów (przechowują surowe stringi, np. z localhost)
   const [uploadUrl, setUploadUrl] = useState(() => {
     return localStorage.getItem('smartframe_upload_url') || 'http://localhost:8000/upload';
   });
@@ -28,13 +26,19 @@ function App() {
     return localStorage.getItem('smartframe_stats_url') || 'http://localhost:8000/show-stats';
   });
 
-  // Funkcja pomocnicza do podmieniania localhost na globalne IP
+  // Funkcja podmieniająca hosta (wszystko między :// a portem/ścieżką)
   const resolveUrl = (url: string) => {
     if (!globalIp) return url;
-    return url.replace(/localhost|127\.0\.0\.1/g, globalIp);
+    try {
+      const urlObj = new URL(url);
+      urlObj.hostname = globalIp;
+      return urlObj.toString();
+    } catch (e) {
+      // Fallback jeśli URL jest niepoprawny - prosta podmiana regexem
+      return url.replace(/(https?:\/\/)[^/:]+/, `$1${globalIp}`);
+    }
   };
 
-  // Zapisywanie zmian w localStorage
   useEffect(() => {
     localStorage.setItem('smartframe_global_ip', globalIp);
   }, [globalIp]);
@@ -61,10 +65,8 @@ function App() {
       </div>
 
       <div className="w-full max-w-xl flex flex-col items-center gap-2">
-        {/* Globalne ustawienie IP */}
         <GlobalIpSettings globalIp={globalIp} onIpChange={setGlobalIp} />
 
-        {/* Tab Switcher */}
         <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full mb-4">
           <button
             onClick={() => setActiveTab('upload')}
@@ -92,7 +94,6 @@ function App() {
           </button>
         </div>
 
-        {/* Treść zakładki - przekazujemy rozwiązany URL do komponentów wykonawczych */}
         {activeTab === 'upload' && (
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
             <EndpointSettings apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
