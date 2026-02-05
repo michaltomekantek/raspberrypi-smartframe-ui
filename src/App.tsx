@@ -26,17 +26,25 @@ function App() {
     return localStorage.getItem('smartframe_stats_url') || 'http://localhost:8000/show-stats';
   });
 
-  // Funkcja podmieniająca hosta (wszystko między :// a portem/ścieżką)
-  const resolveUrl = (url: string) => {
-    if (!globalIp) return url;
+  // Funkcja podmieniająca hosta w dowolnym URL
+  const replaceHost = (url: string, newHost: string) => {
     try {
       const urlObj = new URL(url);
-      urlObj.hostname = globalIp;
+      urlObj.hostname = newHost;
       return urlObj.toString();
     } catch (e) {
-      // Fallback jeśli URL jest niepoprawny - prosta podmiana regexem
-      return url.replace(/(https?:\/\/)[^/:]+/, `$1${globalIp}`);
+      return url.replace(/(https?:\/\/)[^/:]+/, `$1${newHost}`);
     }
+  };
+
+  // Funkcja wywoływana po kliknięciu ZASTOSUJ w GlobalIpSettings
+  const handleGlobalIpApply = (newIp: string) => {
+    setGlobalIp(newIp);
+    
+    // Fizycznie podmień hosta we wszystkich polach
+    setUploadUrl(prev => replaceHost(prev, newIp));
+    setInfoUrl(prev => replaceHost(prev, newIp));
+    setStatsUrl(prev => replaceHost(prev, newIp));
   };
 
   useEffect(() => {
@@ -65,7 +73,7 @@ function App() {
       </div>
 
       <div className="w-full max-w-xl flex flex-col items-center gap-2">
-        <GlobalIpSettings globalIp={globalIp} onIpChange={setGlobalIp} />
+        <GlobalIpSettings globalIp={globalIp} onIpChange={handleGlobalIpApply} />
 
         <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full mb-4">
           <button
@@ -97,30 +105,21 @@ function App() {
         {activeTab === 'upload' && (
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
             <EndpointSettings apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
-            <div className="text-[10px] font-mono text-zinc-600 px-4 -mt-2">
-              Aktywny endpoint: {resolveUrl(uploadUrl)}
-            </div>
-            <ImageUpload apiUrl={resolveUrl(uploadUrl)} />
+            <ImageUpload apiUrl={uploadUrl} />
           </div>
         )}
 
         {activeTab === 'info' && (
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
             <EndpointSettings apiUrl={infoUrl} onUrlChange={setInfoUrl} />
-            <div className="text-[10px] font-mono text-zinc-600 px-4 -mt-2">
-              Aktywny endpoint: {resolveUrl(infoUrl)}
-            </div>
-            <DeviceInfo apiUrl={resolveUrl(infoUrl)} />
+            <DeviceInfo apiUrl={infoUrl} />
           </div>
         )}
 
         {activeTab === 'stats' && (
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
             <EndpointSettings apiUrl={statsUrl} onUrlChange={setStatsUrl} />
-            <div className="text-[10px] font-mono text-zinc-600 px-4 -mt-2">
-              Aktywny endpoint: {resolveUrl(statsUrl)}
-            </div>
-            <ShowStats apiUrl={resolveUrl(statsUrl)} />
+            <ShowStats apiUrl={statsUrl} />
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, Check, Edit2 } from 'lucide-react';
 
 interface EndpointSettingsProps {
@@ -9,6 +9,11 @@ interface EndpointSettingsProps {
 const EndpointSettings = ({ apiUrl, onUrlChange }: EndpointSettingsProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempUrl, setTempUrl] = useState(apiUrl);
+
+  // Synchronizuj pole tekstowe, gdy adres zmieni się z zewnątrz (np. przez Global IP)
+  useEffect(() => {
+    setTempUrl(apiUrl);
+  }, [apiUrl]);
 
   const handleSave = () => {
     onUrlChange(tempUrl);
