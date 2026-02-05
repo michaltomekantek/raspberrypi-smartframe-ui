@@ -7,6 +7,7 @@ import DeviceInfo from './components/DeviceInfo';
 import ShowStats from './components/ShowStats';
 import GlobalIpSettings from './components/GlobalIpSettings';
 import ImageList from './components/ImageList';
+import SlideshowControls from './components/SlideshowControls';
 
 function App() {
   const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats' | 'images'>('upload');
@@ -35,6 +36,14 @@ function App() {
     return localStorage.getItem('smartframe_interval_url') || 'http://localhost:8000/settings/interval';
   });
 
+  const [startUrl, setStartUrl] = useState(() => {
+    return localStorage.getItem('smartframe_start_url') || 'http://localhost:8000/start-slideshow';
+  });
+
+  const [stopUrl, setStopUrl] = useState(() => {
+    return localStorage.getItem('smartframe_stop_url') || 'http://localhost:8000/stop-all';
+  });
+
   // Funkcja podmieniająca hosta w dowolnym URL
   const replaceHost = (url: string, newHost: string) => {
     try {
@@ -55,6 +64,8 @@ function App() {
     setStatsUrl(prev => replaceHost(prev, newIp));
     setImagesUrl(prev => replaceHost(prev, newIp));
     setIntervalUrl(prev => replaceHost(prev, newIp));
+    setStartUrl(prev => replaceHost(prev, newIp));
+    setStopUrl(prev => replaceHost(prev, newIp));
   };
 
   useEffect(() => {
@@ -67,7 +78,9 @@ function App() {
     localStorage.setItem('smartframe_stats_url', statsUrl);
     localStorage.setItem('smartframe_images_url', imagesUrl);
     localStorage.setItem('smartframe_interval_url', intervalUrl);
-  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl]);
+    localStorage.setItem('smartframe_start_url', startUrl);
+    localStorage.setItem('smartframe_stop_url', stopUrl);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl]);
 
   // Wyciągnięcie bazowego adresu URL (np. http://localhost:8000)
   const getBaseUrl = (url: string) => {
@@ -90,6 +103,8 @@ function App() {
 
       <div className="w-full max-w-xl flex flex-col items-center gap-2">
         <GlobalIpSettings globalIp={globalIp} onIpChange={handleGlobalIpApply} />
+        
+        <SlideshowControls startUrl={startUrl} stopUrl={stopUrl} />
 
         <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full mb-4 overflow-x-auto no-scrollbar">
           <button
@@ -137,7 +152,8 @@ function App() {
           <div className="w-full flex flex-col gap-2 animate-in fade-in duration-300">
             <EndpointSettings label="List Images" apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
             <EndpointSettings label="Set Interval" apiUrl={intervalUrl} onUrlChange={setIntervalUrl} />
-            <EndpointSettings label="Patch Status (Base)" apiUrl={`${getBaseUrl(imagesUrl)}/images`} onUrlChange={() => {}} />
+            <EndpointSettings label="Start Slideshow" apiUrl={startUrl} onUrlChange={setStartUrl} />
+            <EndpointSettings label="Stop All" apiUrl={stopUrl} onUrlChange={setStopUrl} />
             <div className="mt-4">
               <ImageList apiUrl={imagesUrl} baseUrl={getBaseUrl(imagesUrl)} />
             </div>
