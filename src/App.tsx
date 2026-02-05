@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { Image as ImageIcon, Info, Settings as SettingsIcon } from 'lucide-react';
+import { Image as ImageIcon, Info } from 'lucide-react';
 import ImageUpload from './components/ImageUpload';
 import EndpointSettings from './components/EndpointSettings';
 import DeviceInfo from './components/DeviceInfo';
@@ -24,32 +24,32 @@ function App() {
         <p className="text-zinc-400">Zarządzaj swoją ramką Raspberry Pi</p>
       </div>
 
-      {/* Tab Switcher */}
-      <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 mb-6 w-full max-w-xl">
-        <button
-          onClick={() => setActiveTab('upload')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all
-            ${activeTab === 'upload' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-        >
-          <ImageIcon size={16} />
-          Wgraj zdjęcie
-        </button>
-        <button
-          onClick={() => setActiveTab('info')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all
-            ${activeTab === 'info' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-        >
-          <Info size={16} />
-          Device Info
-        </button>
-      </div>
-
       <div className="w-full max-w-xl flex flex-col items-center gap-6">
+        {/* Ustawienia adresu są teraz zawsze na górze */}
+        <EndpointSettings apiUrl={apiUrl} onUrlChange={setApiUrl} />
+
+        {/* Tab Switcher */}
+        <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full">
+          <button
+            onClick={() => setActiveTab('upload')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all
+              ${activeTab === 'upload' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+          >
+            <ImageIcon size={16} />
+            Wgraj zdjęcie
+          </button>
+          <button
+            onClick={() => setActiveTab('info')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all
+              ${activeTab === 'info' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+          >
+            <Info size={16} />
+            Device Info
+          </button>
+        </div>
+
         {activeTab === 'upload' ? (
-          <>
-            <EndpointSettings apiUrl={apiUrl} onUrlChange={setApiUrl} />
-            <ImageUpload apiUrl={apiUrl} />
-          </>
+          <ImageUpload apiUrl={apiUrl} />
         ) : (
           <DeviceInfo apiUrl={apiUrl} />
         )}
