@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Cpu, HardDrive, Network, Activity, Clock, Thermometer, RefreshCw, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Cpu, HardDrive, Network, Activity, Clock, Thermometer, RefreshCw, AlertCircle, Database } from 'lucide-react';
 
 interface SystemInfo {
   timestamp: string;
@@ -41,19 +41,15 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
     }
   };
 
-  useEffect(() => {
-    fetchInfo();
-  }, [apiUrl]);
-
   return (
     <div className="w-full flex flex-col gap-4">
       <button
         onClick={fetchInfo}
         disabled={loading}
-        className="w-full py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl flex items-center justify-center gap-2 text-sm font-medium transition-colors disabled:opacity-50"
+        className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white border border-blue-400/20 rounded-xl flex items-center justify-center gap-2 text-sm font-bold transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50"
       >
-        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-        {loading ? 'Pobieranie...' : 'Odśwież dane'}
+        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+        {loading ? 'POBIERANIE...' : 'POBIERZ DANE SYSTEMOWE'}
       </button>
 
       {error && (
@@ -63,8 +59,15 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
         </div>
       )}
 
+      {!info && !loading && !error && (
+        <div className="p-12 bg-zinc-900/30 border border-zinc-800 border-dashed rounded-2xl flex flex-col items-center justify-center text-zinc-500 gap-3">
+          <Database size={32} className="opacity-20" />
+          <p className="text-xs uppercase tracking-widest">Kliknij przycisk powyżej, aby pobrać dane</p>
+        </div>
+      )}
+
       {info && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
           {/* CPU */}
           <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
             <div className="flex items-center gap-2 text-zinc-400 mb-3">
