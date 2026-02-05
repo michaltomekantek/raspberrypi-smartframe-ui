@@ -21,9 +21,8 @@ const ShowStats = ({ apiUrl }: ShowStatsProps) => {
     
     try {
       const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'accept': 'application/json' },
-        body: ''
+        method: 'GET',
+        headers: { 'accept': 'application/json' }
       });
       const text = await response.text();
       const isOk = response.ok;
