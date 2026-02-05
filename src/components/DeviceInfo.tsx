@@ -2,15 +2,13 @@ import React, { useState } from 'react';
 import { Cpu, HardDrive, Network, Activity, Clock, Thermometer, RefreshCw, AlertCircle, Database } from 'lucide-react';
 
 interface SystemInfo {
-  timestamp: string;
-  device_time: string;
-  device_date: string;
-  uptime_hours: number;
-  network: { ip_address: string; hostname: string };
-  cpu: { usage_percent: number; temperature_c: number | null; cores: number };
-  memory: { total_gb: number; used_gb: number; free_gb: number; percent_used: number };
-  storage: { total_gb: number; free_gb: number; percent_used: number };
-  platform: { system: string; mode: string };
+  time: string;
+  date: string;
+  cpu: number;
+  temp: string | number;
+  ram: number;
+  storage: number;
+  ip: string;
 }
 
 interface DeviceInfoProps {
@@ -74,13 +72,13 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
               <span className="text-xs font-bold uppercase tracking-wider">Procesor</span>
             </div>
             <div className="flex justify-between items-end">
-              <div className="text-2xl font-bold">{info.cpu?.usage_percent ?? 0}%</div>
+              <div className="text-2xl font-bold">{info.cpu}%</div>
               <div className="text-xs text-zinc-500 flex items-center gap-1">
-                <Thermometer size={12} /> {info.cpu?.temperature_c ? `${info.cpu.temperature_c}°C` : 'N/A'}
+                <Thermometer size={12} /> {info.temp}{typeof info.temp === 'number' ? '°C' : ''}
               </div>
             </div>
             <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${info.cpu?.usage_percent ?? 0}%` }} />
+              <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${info.cpu}%` }} />
             </div>
           </div>
 
@@ -90,11 +88,11 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
               <span className="text-xs font-bold uppercase tracking-wider">Pamięć RAM</span>
             </div>
             <div className="flex justify-between items-end">
-              <div className="text-2xl font-bold">{info.memory?.percent_used ?? 0}%</div>
-              <div className="text-xs text-zinc-500">{info.memory?.used_gb ?? 0} / {info.memory?.total_gb ?? 0} GB</div>
+              <div className="text-2xl font-bold">{info.ram}%</div>
+              <div className="text-xs text-zinc-500">Użycie systemowe</div>
             </div>
             <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${info.memory?.percent_used ?? 0}%` }} />
+              <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${info.ram}%` }} />
             </div>
           </div>
 
@@ -104,11 +102,11 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
               <span className="text-xs font-bold uppercase tracking-wider">Dysk</span>
             </div>
             <div className="flex justify-between items-end">
-              <div className="text-2xl font-bold">{info.storage?.percent_used ?? 0}%</div>
-              <div className="text-xs text-zinc-500">{info.storage?.free_gb ?? 0} GB wolne</div>
+              <div className="text-2xl font-bold">{info.storage}%</div>
+              <div className="text-xs text-zinc-500">Zajęte miejsce</div>
             </div>
             <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div className="bg-amber-500 h-full transition-all duration-500" style={{ width: `${info.storage?.percent_used ?? 0}%` }} />
+              <div className="bg-amber-500 h-full transition-all duration-500" style={{ width: `${info.storage}%` }} />
             </div>
           </div>
 
@@ -118,18 +116,18 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
               <span className="text-xs font-bold uppercase tracking-wider">Sieć</span>
             </div>
             <div className="space-y-1">
-              <div className="text-sm font-mono text-zinc-300">{info.network?.ip_address ?? 'Brak IP'}</div>
-              <div className="text-[10px] text-zinc-500 truncate">{info.network?.hostname ?? 'Brak hosta'}</div>
+              <div className="text-sm font-mono text-zinc-300">{info.ip}</div>
+              <div className="text-[10px] text-zinc-500 truncate">Adres urządzenia</div>
             </div>
           </div>
 
           <div className="md:col-span-2 p-3 bg-zinc-900/30 rounded-xl border border-zinc-800/50 flex justify-between items-center text-[10px] font-mono text-zinc-500">
             <div className="flex items-center gap-2">
               <Clock size={12} />
-              UPTIME: {info.uptime_hours?.toFixed(1) ?? 0}h
+              CZAS SYSTEMOWY
             </div>
             <div>
-              {info.device_date} {info.device_time}
+              {info.date} {info.time}
             </div>
           </div>
         </div>
