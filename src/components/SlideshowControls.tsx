@@ -13,12 +13,13 @@ const SlideshowControls = ({ startUrl, stopUrl }: SlideshowControlsProps) => {
   const handleAction = async (type: 'start' | 'stop') => {
     setLoading(type);
     const url = type === 'start' ? startUrl : stopUrl;
+    const method = type === 'stop' ? 'GET' : 'POST';
     
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method: method,
         headers: { 'accept': 'application/json' },
-        body: ''
+        ...(method === 'POST' ? { body: '' } : {})
       });
 
       if (response.ok) {
