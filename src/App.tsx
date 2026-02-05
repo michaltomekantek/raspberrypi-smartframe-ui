@@ -31,6 +31,10 @@ function App() {
     return localStorage.getItem('smartframe_images_url') || 'http://localhost:8000/images';
   });
 
+  const [intervalUrl, setIntervalUrl] = useState(() => {
+    return localStorage.getItem('smartframe_interval_url') || 'http://localhost:8000/settings/interval';
+  });
+
   // Funkcja podmieniająca hosta w dowolnym URL
   const replaceHost = (url: string, newHost: string) => {
     try {
@@ -50,6 +54,7 @@ function App() {
     setInfoUrl(prev => replaceHost(prev, newIp));
     setStatsUrl(prev => replaceHost(prev, newIp));
     setImagesUrl(prev => replaceHost(prev, newIp));
+    setIntervalUrl(prev => replaceHost(prev, newIp));
   };
 
   useEffect(() => {
@@ -61,7 +66,8 @@ function App() {
     localStorage.setItem('smartframe_info_url', infoUrl);
     localStorage.setItem('smartframe_stats_url', statsUrl);
     localStorage.setItem('smartframe_images_url', imagesUrl);
-  }, [uploadUrl, infoUrl, statsUrl, imagesUrl]);
+    localStorage.setItem('smartframe_interval_url', intervalUrl);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl]);
 
   // Wyciągnięcie bazowego adresu URL (np. http://localhost:8000)
   const getBaseUrl = (url: string) => {
@@ -122,28 +128,32 @@ function App() {
 
         {activeTab === 'upload' && (
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
-            <EndpointSettings apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
+            <EndpointSettings label="Upload Endpoint" apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
             <ImageUpload apiUrl={uploadUrl} />
           </div>
         )}
 
         {activeTab === 'images' && (
-          <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
-            <EndpointSettings apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
-            <ImageList apiUrl={imagesUrl} baseUrl={getBaseUrl(imagesUrl)} />
+          <div className="w-full flex flex-col gap-2 animate-in fade-in duration-300">
+            <EndpointSettings label="List Images" apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
+            <EndpointSettings label="Set Interval" apiUrl={intervalUrl} onUrlChange={setIntervalUrl} />
+            <EndpointSettings label="Patch Status (Base)" apiUrl={`${getBaseUrl(imagesUrl)}/images`} onUrlChange={() => {}} />
+            <div className="mt-4">
+              <ImageList apiUrl={imagesUrl} baseUrl={getBaseUrl(imagesUrl)} />
+            </div>
           </div>
         )}
 
         {activeTab === 'info' && (
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
-            <EndpointSettings apiUrl={infoUrl} onUrlChange={setInfoUrl} />
+            <EndpointSettings label="System Info Endpoint" apiUrl={infoUrl} onUrlChange={setInfoUrl} />
             <DeviceInfo apiUrl={infoUrl} />
           </div>
         )}
 
         {activeTab === 'stats' && (
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
-            <EndpointSettings apiUrl={statsUrl} onUrlChange={setStatsUrl} />
+            <EndpointSettings label="Show Stats Endpoint" apiUrl={statsUrl} onUrlChange={setStatsUrl} />
             <ShowStats apiUrl={statsUrl} />
           </div>
         )}
