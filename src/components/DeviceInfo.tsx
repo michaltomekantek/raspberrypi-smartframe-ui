@@ -26,16 +26,21 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
     setLoading(true);
     setError(null);
     try {
-      // Obsługa różnych formatów URL (z /upload lub bez)
-      const baseUrl = apiUrl.endsWith('/upload') ? apiUrl.replace('/upload', '') : apiUrl;
-      const infoUrl = `${baseUrl.replace(/\/$/, '')}/system-info`;
+      // Inteligentne budowanie adresu: usuwamy znane końcówki i slash na końcu
+      const cleanBase = apiUrl
+        .replace(/\/upload$/, '')
+        .replace(/\/system-info$/, '')
+        .replace(/\/$/, '');
+      
+      const infoUrl = `${cleanBase}/system-info`;
       
       const response = await fetch(infoUrl);
-      if (!response.ok) throw new Error(`Błąd: ${response.status}`);
+      if (!response.ok) throw new Error(`Błąd serwera: ${response.status}`);
+      
       const data = await response.json();
       setInfo(data);
     } catch (err: any) {
-      setError(err.message || 'Błąd połączenia');
+      setError(err.message || 'Błąd połączenia z API');
     } finally {
       setLoading(false);
     }
@@ -55,20 +60,22 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
       {error && (
         <div className="p-4 bg-red-950/20 border border-red-900/50 rounded-xl flex items-center gap-3 text-red-400 text-sm">
           <AlertCircle size={18} />
-          <span>{error}</span>
+          <div className="flex flex-col">
+            <span className="font-bold">Błąd pobierania</span>
+            <span className="text-xs opacity-80">{error}</span>
+          </div>
         </div>
       )}
 
       {!info && !loading && !error && (
         <div className="p-12 bg-zinc-900/30 border border-zinc-800 border-dashed rounded-2xl flex flex-col items-center justify-center text-zinc-500 gap-3">
           <Database size={32} className="opacity-20" />
-          <p className="text-xs uppercase tracking-widest">Kliknij przycisk powyżej, aby pobrać dane</p>
+          <p className="text-xs uppercase tracking-widest">Kliknij przycisk powyżej</p>
         </div>
       )}
 
       {info && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          {/* CPU */}
           <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
             <div className="flex items-center gap-2 text-zinc-400 mb-3">
               <Cpu size={16} />
@@ -85,7 +92,6 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
             </div>
           </div>
 
-          {/* RAM */}
           <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
             <div className="flex items-center gap-2 text-zinc-400 mb-3">
               <Activity size={16} />
@@ -100,7 +106,6 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
             </div>
           </div>
 
-          {/* Storage */}
           <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
             <div className="flex items-center gap-2 text-zinc-400 mb-3">
               <HardDrive size={16} />
@@ -115,7 +120,6 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
             </div>
           </div>
 
-          {/* Network */}
           <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
             <div className="flex items-center gap-2 text-zinc-400 mb-3">
               <Network size={16} />
@@ -127,7 +131,6 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
             </div>
           </div>
 
-          {/* Footer */}
           <div className="md:col-span-2 p-3 bg-zinc-900/30 rounded-xl border border-zinc-800/50 flex justify-between items-center text-[10px] font-mono text-zinc-500">
             <div className="flex items-center gap-2">
               <Clock size={12} />
