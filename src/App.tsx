@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { Image as ImageIcon, Info, BarChart3 } from 'lucide-react';
+import { Image as ImageIcon, Info, BarChart3, Library } from 'lucide-react';
 import ImageUpload from './components/ImageUpload';
 import EndpointSettings from './components/EndpointSettings';
 import DeviceInfo from './components/DeviceInfo';
 import ShowStats from './components/ShowStats';
 import GlobalIpSettings from './components/GlobalIpSettings';
+import ImageList from './components/ImageList';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats' | 'images'>('upload');
   
   const [globalIp, setGlobalIp] = useState(() => {
     return localStorage.getItem('smartframe_global_ip') || 'localhost';
@@ -26,6 +27,10 @@ function App() {
     return localStorage.getItem('smartframe_stats_url') || 'http://localhost:8000/show-stats';
   });
 
+  const [imagesUrl, setImagesUrl] = useState(() => {
+    return localStorage.getItem('smartframe_images_url') || 'http://localhost:8000/images';
+  });
+
   // Funkcja podmieniająca hosta w dowolnym URL
   const replaceHost = (url: string, newHost: string) => {
     try {
@@ -41,10 +46,10 @@ function App() {
   const handleGlobalIpApply = (newIp: string) => {
     setGlobalIp(newIp);
     
-    // Fizycznie podmień hosta we wszystkich polach
     setUploadUrl(prev => replaceHost(prev, newIp));
     setInfoUrl(prev => replaceHost(prev, newIp));
     setStatsUrl(prev => replaceHost(prev, newIp));
+    setImagesUrl(prev => replaceHost(prev, newIp));
   };
 
   useEffect(() => {
@@ -53,15 +58,20 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem('smartframe_upload_url', uploadUrl);
-  }, [uploadUrl]);
-
-  useEffect(() => {
     localStorage.setItem('smartframe_info_url', infoUrl);
-  }, [infoUrl]);
-
-  useEffect(() => {
     localStorage.setItem('smartframe_stats_url', statsUrl);
-  }, [statsUrl]);
+    localStorage.setItem('smartframe_images_url', imagesUrl);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl]);
+
+  // Wyciągnięcie bazowego adresu URL (np. http://localhost:8000)
+  const getBaseUrl = (url: string) => {
+    try {
+      const urlObj = new URL(url);
+      return `${urlObj.protocol}//${urlObj.host}`;
+    } catch (e) {
+      return 'http://localhost:8000';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center p-4 pt-12">
@@ -75,30 +85,38 @@ function App() {
       <div className="w-full max-w-xl flex flex-col items-center gap-2">
         <GlobalIpSettings globalIp={globalIp} onIpChange={handleGlobalIpApply} />
 
-        <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full mb-4">
+        <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full mb-4 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('upload')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
               ${activeTab === 'upload' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <ImageIcon size={16} />
-            Wgraj zdjęcie
+            Wgraj
+          </button>
+          <button
+            onClick={() => setActiveTab('images')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
+              ${activeTab === 'images' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+          >
+            <Library size={16} />
+            Images
           </button>
           <button
             onClick={() => setActiveTab('info')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
               ${activeTab === 'info' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <Info size={16} />
-            Device Info
+            Info
           </button>
           <button
             onClick={() => setActiveTab('stats')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
               ${activeTab === 'stats' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
             <BarChart3 size={16} />
-            Show Stats
+            Stats
           </button>
         </div>
 
@@ -106,6 +124,13 @@ function App() {
           <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
             <EndpointSettings apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
             <ImageUpload apiUrl={uploadUrl} />
+          </div>
+        )}
+
+        {activeTab === 'images' && (
+          <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
+            <EndpointSettings apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
+            <ImageList apiUrl={imagesUrl} baseUrl={getBaseUrl(imagesUrl)} />
           </div>
         )}
 
