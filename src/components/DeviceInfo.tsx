@@ -26,7 +26,6 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
     setLoading(true);
     setError(null);
     try {
-      // Teraz używamy adresu bezpośrednio, bo każda zakładka ma swój własny
       const response = await fetch(apiUrl);
       if (!response.ok) throw new Error(`Błąd serwera: ${response.status}`);
       
@@ -75,13 +74,13 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
               <span className="text-xs font-bold uppercase tracking-wider">Procesor</span>
             </div>
             <div className="flex justify-between items-end">
-              <div className="text-2xl font-bold">{info.cpu.usage_percent}%</div>
+              <div className="text-2xl font-bold">{info.cpu?.usage_percent ?? 0}%</div>
               <div className="text-xs text-zinc-500 flex items-center gap-1">
-                <Thermometer size={12} /> {info.cpu.temperature_c ? `${info.cpu.temperature_c}°C` : 'N/A'}
+                <Thermometer size={12} /> {info.cpu?.temperature_c ? `${info.cpu.temperature_c}°C` : 'N/A'}
               </div>
             </div>
             <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${info.cpu.usage_percent}%` }} />
+              <div className="bg-blue-500 h-full transition-all duration-500" style={{ width: `${info.cpu?.usage_percent ?? 0}%` }} />
             </div>
           </div>
 
@@ -91,11 +90,11 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
               <span className="text-xs font-bold uppercase tracking-wider">Pamięć RAM</span>
             </div>
             <div className="flex justify-between items-end">
-              <div className="text-2xl font-bold">{info.memory.percent_used}%</div>
-              <div className="text-xs text-zinc-500">{info.memory.used_gb} / {info.memory.total_gb} GB</div>
+              <div className="text-2xl font-bold">{info.memory?.percent_used ?? 0}%</div>
+              <div className="text-xs text-zinc-500">{info.memory?.used_gb ?? 0} / {info.memory?.total_gb ?? 0} GB</div>
             </div>
             <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${info.memory.percent_used}%` }} />
+              <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${info.memory?.percent_used ?? 0}%` }} />
             </div>
           </div>
 
@@ -105,11 +104,11 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
               <span className="text-xs font-bold uppercase tracking-wider">Dysk</span>
             </div>
             <div className="flex justify-between items-end">
-              <div className="text-2xl font-bold">{info.storage.percent_used}%</div>
-              <div className="text-xs text-zinc-500">{info.storage.free_gb} GB wolne</div>
+              <div className="text-2xl font-bold">{info.storage?.percent_used ?? 0}%</div>
+              <div className="text-xs text-zinc-500">{info.storage?.free_gb ?? 0} GB wolne</div>
             </div>
             <div className="w-full bg-zinc-800 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div className="bg-amber-500 h-full transition-all duration-500" style={{ width: `${info.storage.percent_used}%` }} />
+              <div className="bg-amber-500 h-full transition-all duration-500" style={{ width: `${info.storage?.percent_used ?? 0}%` }} />
             </div>
           </div>
 
@@ -119,15 +118,15 @@ const DeviceInfo = ({ apiUrl }: DeviceInfoProps) => {
               <span className="text-xs font-bold uppercase tracking-wider">Sieć</span>
             </div>
             <div className="space-y-1">
-              <div className="text-sm font-mono text-zinc-300">{info.network.ip_address}</div>
-              <div className="text-[10px] text-zinc-500 truncate">{info.network.hostname}</div>
+              <div className="text-sm font-mono text-zinc-300">{info.network?.ip_address ?? 'Brak IP'}</div>
+              <div className="text-[10px] text-zinc-500 truncate">{info.network?.hostname ?? 'Brak hosta'}</div>
             </div>
           </div>
 
           <div className="md:col-span-2 p-3 bg-zinc-900/30 rounded-xl border border-zinc-800/50 flex justify-between items-center text-[10px] font-mono text-zinc-500">
             <div className="flex items-center gap-2">
               <Clock size={12} />
-              UPTIME: {info.uptime_hours.toFixed(1)}h
+              UPTIME: {info.uptime_hours?.toFixed(1) ?? 0}h
             </div>
             <div>
               {info.device_date} {info.device_time}
