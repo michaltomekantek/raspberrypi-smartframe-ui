@@ -41,7 +41,7 @@ const EpaperImageList = ({ apiUrl, showUrl }: EpaperImageListProps) => {
     setLoadingImageId(id);
     try {
       const response = await fetch(`${showUrl}/${id}`, {
-        method: 'GET',
+        method: 'POST',
         headers: { 'accept': 'application/json' }
       });
       if (!response.ok) throw new Error('Błąd odświeżania ekranu');

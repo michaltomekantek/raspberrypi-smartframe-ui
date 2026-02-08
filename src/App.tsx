@@ -261,7 +261,7 @@ function App() {
                 <div className="space-y-2 animate-in fade-in duration-200">
                   <EndpointSettings label="Upload E-Papier (POST)" apiUrl={epaperUploadUrl} onUrlChange={setEpaperUploadUrl} />
                   <EndpointSettings label="Lista Zdjęć E-Papier (GET/PATCH/DELETE)" apiUrl={epaperImagesUrl} onUrlChange={setEpaperImagesUrl} />
-                  <EndpointSettings label="Wyświetlanie E-Papier (GET)" apiUrl={epaperShowUrl} onUrlChange={setEpaperShowUrl} />
+                  <EndpointSettings label="Wyświetlanie E-Papier (POST)" apiUrl={epaperShowUrl} onUrlChange={setEpaperShowUrl} />
                 </div>
               )}
             </div>
