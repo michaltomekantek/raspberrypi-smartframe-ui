@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { Image as ImageIcon, Info, BarChart3, Library } from 'lucide-react';
+import { Image as ImageIcon, Info, BarChart3, Library, Monitor, Tablet } from 'lucide-react';
 import ImageUpload from './components/ImageUpload';
 import EndpointSettings from './components/EndpointSettings';
 import DeviceInfo from './components/DeviceInfo';
@@ -10,6 +10,7 @@ import ImageList from './components/ImageList';
 import SlideshowControls from './components/SlideshowControls';
 
 function App() {
+  const [activeDevice, setActiveDevice] = useState<'ips' | 'epaper'>('ips');
   const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats' | 'images'>('upload');
   
   const [globalIp, setGlobalIp] = useState(() => {
@@ -44,7 +45,6 @@ function App() {
     return localStorage.getItem('smartframe_stop_url') || 'http://localhost:8000/stop-all';
   });
 
-  // Funkcja podmieniająca hosta w dowolnym URL
   const replaceHost = (url: string, newHost: string) => {
     try {
       const urlObj = new URL(url);
@@ -55,10 +55,8 @@ function App() {
     }
   };
 
-  // Funkcja wywoływana po kliknięciu ZASTOSUJ w GlobalIpSettings
   const handleGlobalIpApply = (newIp: string) => {
     setGlobalIp(newIp);
-    
     setUploadUrl(prev => replaceHost(prev, newIp));
     setInfoUrl(prev => replaceHost(prev, newIp));
     setStatsUrl(prev => replaceHost(prev, newIp));
@@ -82,7 +80,6 @@ function App() {
     localStorage.setItem('smartframe_stop_url', stopUrl);
   }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl]);
 
-  // Wyciągnięcie bazowego adresu URL (np. http://localhost:8000)
   const getBaseUrl = (url: string) => {
     try {
       const urlObj = new URL(url);
@@ -93,90 +90,114 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center p-4 pt-12">
+    <div className="min-h-screen bg-black text-white flex flex-col items-center p-4 pt-8">
       <Toaster position="top-center" reverseOrder={false} />
       
-      <div className="mb-8 text-center">
-        <h1 className="text-4xl font-bold tracking-tight mb-2">Smart Frame</h1>
-        <p className="text-zinc-400">Zarządzaj swoją ramką Raspberry Pi</p>
+      <div className="mb-6 text-center">
+        <h1 className="text-3xl font-bold tracking-tight mb-1">Smart Frame Hub</h1>
+        <p className="text-zinc-500 text-sm">Centrum zarządzania Twoimi ramkami</p>
       </div>
 
-      <div className="w-full max-w-xl flex flex-col items-center gap-2">
-        <GlobalIpSettings globalIp={globalIp} onIpChange={handleGlobalIpApply} />
-        
-        <SlideshowControls startUrl={startUrl} stopUrl={stopUrl} />
+      {/* Main Device Switcher */}
+      <div className="w-full max-w-xl flex bg-zinc-900/50 p-1 rounded-2xl border border-zinc-800 mb-8">
+        <button
+          onClick={() => setActiveDevice('ips')}
+          className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-bold transition-all
+            ${activeDevice === 'ips' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-zinc-500 hover:text-zinc-300'}`}
+        >
+          <Monitor size={18} />
+          RAMKA IPS
+        </button>
+        <button
+          onClick={() => setActiveDevice('epaper')}
+          className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-bold transition-all
+            ${activeDevice === 'epaper' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+        >
+          <Tablet size={18} />
+          RAMKA E-PAPIER
+        </button>
+      </div>
 
-        <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full mb-4 overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => setActiveTab('upload')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
-              ${activeTab === 'upload' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-          >
-            <ImageIcon size={16} />
-            Wgraj
-          </button>
-          <button
-            onClick={() => setActiveTab('images')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
-              ${activeTab === 'images' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-          >
-            <Library size={16} />
-            Images
-          </button>
-          <button
-            onClick={() => setActiveTab('info')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
-              ${activeTab === 'info' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-          >
-            <Info size={16} />
-            Info
-          </button>
-          <button
-            onClick={() => setActiveTab('stats')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
-              ${activeTab === 'stats' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-          >
-            <BarChart3 size={16} />
-            Stats
-          </button>
-        </div>
+      <div className="w-full max-w-xl flex flex-col items-center">
+        {activeDevice === 'ips' ? (
+          <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <GlobalIpSettings globalIp={globalIp} onIpChange={handleGlobalIpApply} />
+            <SlideshowControls startUrl={startUrl} stopUrl={stopUrl} />
 
-        {activeTab === 'upload' && (
-          <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
-            <EndpointSettings label="Upload Endpoint" apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
-            <ImageUpload apiUrl={uploadUrl} />
-          </div>
-        )}
-
-        {activeTab === 'images' && (
-          <div className="w-full flex flex-col gap-2 animate-in fade-in duration-300">
-            <EndpointSettings label="List Images" apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
-            <EndpointSettings label="Set Interval" apiUrl={intervalUrl} onUrlChange={setIntervalUrl} />
-            <EndpointSettings label="Start Slideshow" apiUrl={startUrl} onUrlChange={setStartUrl} />
-            <EndpointSettings label="Stop All" apiUrl={stopUrl} onUrlChange={setStopUrl} />
-            <div className="mt-4">
-              <ImageList apiUrl={imagesUrl} baseUrl={getBaseUrl(imagesUrl)} />
+            <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full mb-4 overflow-x-auto no-scrollbar">
+              <button
+                onClick={() => setActiveTab('upload')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
+                  ${activeTab === 'upload' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                <ImageIcon size={16} />
+                Wgraj
+              </button>
+              <button
+                onClick={() => setActiveTab('images')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
+                  ${activeTab === 'images' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                <Library size={16} />
+                Zdjęcia
+              </button>
+              <button
+                onClick={() => setActiveTab('info')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
+                  ${activeTab === 'info' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                <Info size={16} />
+                Info
+              </button>
+              <button
+                onClick={() => setActiveTab('stats')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
+                  ${activeTab === 'stats' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                <BarChart3 size={16} />
+                Stats
+              </button>
             </div>
-          </div>
-        )}
 
-        {activeTab === 'info' && (
-          <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
-            <EndpointSettings label="System Info Endpoint" apiUrl={infoUrl} onUrlChange={setInfoUrl} />
-            <DeviceInfo apiUrl={infoUrl} />
-          </div>
-        )}
+            {activeTab === 'upload' && (
+              <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
+                <EndpointSettings label="Upload Endpoint" apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
+                <ImageUpload apiUrl={uploadUrl} />
+              </div>
+            )}
 
-        {activeTab === 'stats' && (
-          <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
-            <EndpointSettings label="Show Stats Endpoint" apiUrl={statsUrl} onUrlChange={setStatsUrl} />
-            <ShowStats apiUrl={statsUrl} />
+            {activeTab === 'images' && (
+              <div className="w-full flex flex-col gap-2 animate-in fade-in duration-300">
+                <EndpointSettings label="List Images" apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
+                <ImageList apiUrl={imagesUrl} baseUrl={getBaseUrl(imagesUrl)} />
+              </div>
+            )}
+
+            {activeTab === 'info' && (
+              <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
+                <EndpointSettings label="System Info Endpoint" apiUrl={infoUrl} onUrlChange={setInfoUrl} />
+                <DeviceInfo apiUrl={infoUrl} />
+              </div>
+            )}
+
+            {activeTab === 'stats' && (
+              <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
+                <EndpointSettings label="Show Stats Endpoint" apiUrl={statsUrl} onUrlChange={setStatsUrl} />
+                <ShowStats apiUrl={statsUrl} />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="w-full flex flex-col items-center justify-center py-20 text-zinc-600 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <Tablet size={64} className="mb-4 opacity-20" />
+            <h2 className="text-xl font-bold text-zinc-400">Ramka E-Papier</h2>
+            <p className="text-sm mt-2">Funkcjonalność w przygotowaniu...</p>
           </div>
         )}
       </div>
       
       <div className="mt-auto py-8 text-[10px] text-zinc-600 uppercase tracking-widest">
-        Raspberry Pi Smart Frame UI
+        Raspberry Pi Smart Frame Hub
       </div>
     </div>
   );
