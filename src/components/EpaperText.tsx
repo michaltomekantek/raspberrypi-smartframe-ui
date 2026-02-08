@@ -27,7 +27,6 @@ const EpaperText = ({ apiUrl }: EpaperTextProps) => {
     setDebugData(null);
     
     try {
-      // Budowanie URL z parametrami query
       const url = new URL(apiUrl);
       url.searchParams.append('text', text);
       if (title.trim()) {
@@ -39,7 +38,7 @@ const EpaperText = ({ apiUrl }: EpaperTextProps) => {
         headers: { 
           'accept': 'application/json'
         },
-        body: '' // Puste body zgodnie z wymaganiem
+        body: ''
       });
 
       const responseText = await response.text();
@@ -55,6 +54,9 @@ const EpaperText = ({ apiUrl }: EpaperTextProps) => {
         toast.success("Tekst wysłany na E-Papier!");
         setText('');
         setTitle('');
+      } else if (response.status === 429) {
+        toast.error("Ramka musi się przeładować. Spróbuj ponownie za chwilę.");
+        setShowLogs(true);
       } else {
         toast.error(`Błąd: ${response.status}`);
         setShowLogs(true);
@@ -120,7 +122,6 @@ const EpaperText = ({ apiUrl }: EpaperTextProps) => {
         </div>
       </div>
 
-      {/* Nakładka ładowania podczas odświeżania ekranu */}
       {loading && (
         <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
           <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
@@ -140,7 +141,7 @@ const EpaperText = ({ apiUrl }: EpaperTextProps) => {
             <div className="flex items-center gap-2">
               {debugData.isError ? <AlertCircle size={14} className="text-red-500" /> : <CheckCircle2 size={14} className="text-emerald-500" />}
               <span className={debugData.isError ? 'text-red-400' : 'text-emerald-400'}>
-                Status: {debugData.status}
+                Status: {debugData.status} {debugData.status === 429 && "(RAMKA ZAJĘTA)"}
               </span>
             </div>
             {showLogs ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -150,7 +151,7 @@ const EpaperText = ({ apiUrl }: EpaperTextProps) => {
             <div className="px-4 pb-4 animate-in slide-in-from-top-1 duration-200">
               <div className="p-3 bg-black/50 rounded-lg border border-zinc-800 font-mono text-[10px] text-zinc-400 overflow-x-auto">
                 <pre className="whitespace-pre-wrap break-all">
-                  {debugData.rawResponse || "(Brak treści)"}
+                  {debugData.status === 429 ? "Serwer zwrócił błąd 429: Ramka jest obecnie w trakcie odświeżania ekranu. Poczekaj około 30-60 sekund przed kolejną próbą." : (debugData.rawResponse || "(Brak treści)")}
                 </pre>
               </div>
             </div>

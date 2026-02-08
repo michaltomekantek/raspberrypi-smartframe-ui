@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, FileImage } from 'lucide-react';
+import { Upload, X, CheckCircle2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface EpaperUploadProps {
@@ -59,6 +59,9 @@ const EpaperUpload = ({ apiUrl }: EpaperUploadProps) => {
         toast.success("Zdjęcie wysłane na E-Papier!");
         setFile(null);
         setPreview(null);
+      } else if (response.status === 429) {
+        toast.error("Ramka musi się przeładować. Spróbuj ponownie za chwilę.");
+        setShowLogs(true);
       } else {
         toast.error(`Błąd: ${response.status}`);
         setShowLogs(true);
@@ -125,7 +128,7 @@ const EpaperUpload = ({ apiUrl }: EpaperUploadProps) => {
             <div className="flex items-center gap-2">
               {debugData.isError ? <AlertCircle size={14} className="text-red-500" /> : <CheckCircle2 size={14} className="text-emerald-500" />}
               <span className={debugData.isError ? 'text-red-400' : 'text-emerald-400'}>
-                Status: {debugData.status}
+                Status: {debugData.status} {debugData.status === 429 && "(RAMKA ZAJĘTA)"}
               </span>
             </div>
             {showLogs ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -135,7 +138,7 @@ const EpaperUpload = ({ apiUrl }: EpaperUploadProps) => {
             <div className="px-4 pb-4 animate-in slide-in-from-top-1 duration-200">
               <div className="p-3 bg-black/50 rounded-lg border border-zinc-800 font-mono text-[10px] text-zinc-400 overflow-x-auto">
                 <pre className="whitespace-pre-wrap break-all">
-                  {debugData.rawResponse || "(Brak treści)"}
+                  {debugData.status === 429 ? "Serwer zwrócił błąd 429: Ramka jest obecnie w trakcie odświeżania ekranu. Poczekaj około 30-60 sekund przed kolejną próbą." : (debugData.rawResponse || "(Brak treści)")}
                 </pre>
               </div>
             </div>

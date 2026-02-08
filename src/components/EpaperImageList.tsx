@@ -44,6 +44,12 @@ const EpaperImageList = ({ apiUrl, showUrl }: EpaperImageListProps) => {
         method: 'POST',
         headers: { 'accept': 'application/json' }
       });
+      
+      if (response.status === 429) {
+        toast.error("Ramka musi się przeładować. Spróbuj ponownie za chwilę.");
+        return;
+      }
+      
       if (!response.ok) throw new Error('Błąd odświeżania ekranu');
       toast.success("Zlecono wyświetlenie na ramce");
     } catch (error) {
