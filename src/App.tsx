@@ -12,6 +12,7 @@ import SlideshowControls from './components/SlideshowControls';
 function App() {
   const [activeDevice, setActiveDevice] = useState<'ips' | 'epaper' | 'settings'>('ips');
   const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats' | 'images'>('upload');
+  const [epaperTab, setEpaperTab] = useState<'upload' | 'images'>('upload');
   const [settingsTab, setSettingsTab] = useState<'ips' | 'epaper'>('ips');
   
   const [globalIp, setGlobalIp] = useState(() => {
@@ -177,10 +178,33 @@ function App() {
         )}
 
         {activeDevice === 'epaper' && (
-          <div className="w-full flex flex-col items-center justify-center py-20 text-zinc-600 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <Tablet size={64} className="mb-4 opacity-20" />
-            <h2 className="text-xl font-bold text-zinc-400">Ramka E-Papier</h2>
-            <p className="text-sm mt-2">Funkcjonalność w przygotowaniu...</p>
+          <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full mb-4 overflow-x-auto no-scrollbar">
+              <button
+                onClick={() => setEpaperTab('upload')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
+                  ${epaperTab === 'upload' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                <ImageIcon size={16} />
+                Wgraj
+              </button>
+              <button
+                onClick={() => setEpaperTab('images')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
+                  ${epaperTab === 'images' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                <Library size={16} />
+                Zdjęcia
+              </button>
+            </div>
+
+            <div className="w-full flex flex-col items-center justify-center py-20 text-zinc-600">
+              <Tablet size={64} className="mb-4 opacity-20" />
+              <h2 className="text-xl font-bold text-zinc-400">
+                {epaperTab === 'upload' ? 'Wgrywanie na E-Papier' : 'Biblioteka E-Papier'}
+              </h2>
+              <p className="text-sm mt-2">Funkcjonalność w przygotowaniu...</p>
+            </div>
           </div>
         )}
 
