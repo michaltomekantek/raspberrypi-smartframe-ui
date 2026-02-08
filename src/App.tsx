@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { Image as ImageIcon, Info, BarChart3, Library, Monitor, Tablet, Settings as SettingsIcon, Globe, Type } from 'lucide-react';
+import { Image as ImageIcon, Info, BarChart3, Library, Monitor, Tablet, Settings as SettingsIcon, Globe, Type, Power } from 'lucide-react';
 import ImageUpload from './components/ImageUpload';
 import EndpointSettings from './components/EndpointSettings';
 import DeviceInfo from './components/DeviceInfo';
@@ -11,12 +11,13 @@ import SlideshowControls from './components/SlideshowControls';
 import EpaperUpload from './components/EpaperUpload';
 import EpaperImageList from './components/EpaperImageList';
 import EpaperText from './components/EpaperText';
+import SystemControls from './components/SystemControls';
 
 function App() {
   const [activeDevice, setActiveDevice] = useState<'ips' | 'epaper' | 'settings'>('ips');
   const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats' | 'images'>('upload');
   const [epaperTab, setEpaperTab] = useState<'upload' | 'images' | 'text'>('upload');
-  const [settingsTab, setSettingsTab] = useState<'ips' | 'epaper'>('ips');
+  const [settingsTab, setSettingsTab] = useState<'ips' | 'epaper' | 'system'>('ips');
   
   const [globalIp, setGlobalIp] = useState(() => {
     return localStorage.getItem('smartframe_global_ip') || '192.168.0.194';
@@ -62,6 +63,14 @@ function App() {
     return localStorage.getItem('smartframe_epaper_delete_url') || 'http://192.168.0.194:8000/epaper/images';
   });
 
+  // System Endpoints
+  const [shutdownUrl, setShutdownUrl] = useState(() => {
+    return localStorage.getItem('smartframe_shutdown_url') || 'http://192.168.0.194:8000/system/shutdown';
+  });
+  const [rebootUrl, setRebootUrl] = useState(() => {
+    return localStorage.getItem('smartframe_reboot_url') || 'http://192.168.0.194:8000/system/reboot';
+  });
+
   const replaceHost = (url: string, newHost: string) => {
     try {
       const urlObj = new URL(url);
@@ -86,6 +95,8 @@ function App() {
     setEpaperShowUrl(prev => replaceHost(prev, newIp));
     setEpaperTextUrl(prev => replaceHost(prev, newIp));
     setEpaperDeleteUrl(prev => replaceHost(prev, newIp));
+    setShutdownUrl(prev => replaceHost(prev, newIp));
+    setRebootUrl(prev => replaceHost(prev, newIp));
     
     toast.success(`Zaktualizowano wszystkie adresy na: ${newIp}`);
   };
@@ -107,7 +118,9 @@ function App() {
     localStorage.setItem('smartframe_epaper_show_url', epaperShowUrl);
     localStorage.setItem('smartframe_epaper_text_url', epaperTextUrl);
     localStorage.setItem('smartframe_epaper_delete_url', epaperDeleteUrl);
-  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl, epaperTextUrl, epaperDeleteUrl]);
+    localStorage.setItem('smartframe_shutdown_url', shutdownUrl);
+    localStorage.setItem('smartframe_reboot_url', rebootUrl);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl, epaperTextUrl, epaperDeleteUrl, shutdownUrl, rebootUrl]);
 
   const getBaseUrl = (url: string) => {
     try {
@@ -248,24 +261,31 @@ function App() {
             </div>
 
             <div className="w-full">
-              <div className="flex bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 mb-6">
+              <div className="flex bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 mb-6 overflow-x-auto no-scrollbar">
                 <button
                   onClick={() => setSettingsTab('ips')}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all
+                  className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold transition-all whitespace-nowrap
                     ${settingsTab === 'ips' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
                   RAMKA IPS
                 </button>
                 <button
                   onClick={() => setSettingsTab('epaper')}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all
+                  className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold transition-all whitespace-nowrap
                     ${settingsTab === 'epaper' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                 >
                   RAMKA E-PAPIER
                 </button>
+                <button
+                  onClick={() => setSettingsTab('system')}
+                  className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold transition-all whitespace-nowrap
+                    ${settingsTab === 'system' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  SYSTEM
+                </button>
               </div>
 
-              {settingsTab === 'ips' ? (
+              {settingsTab === 'ips' && (
                 <div className="space-y-2 animate-in fade-in duration-200">
                   <EndpointSettings label="Upload (POST)" apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
                   <EndpointSettings label="Lista Zdjęć (GET/PATCH/DELETE)" apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
@@ -274,13 +294,25 @@ function App() {
                   <EndpointSettings label="Start Pokazu (GET)" apiUrl={startUrl} onUrlChange={setStartUrl} />
                   <EndpointSettings label="Stop Pokazu (GET)" apiUrl={stopUrl} onUrlChange={setStopUrl} />
                 </div>
-              ) : (
+              )}
+
+              {settingsTab === 'epaper' && (
                 <div className="space-y-2 animate-in fade-in duration-200">
                   <EndpointSettings label="Upload E-Papier (POST)" apiUrl={epaperUploadUrl} onUrlChange={setEpaperUploadUrl} />
                   <EndpointSettings label="Tekst E-Papier (POST + Query)" apiUrl={epaperTextUrl} onUrlChange={setEpaperTextUrl} />
                   <EndpointSettings label="Lista Zdjęć E-Papier (GET/PATCH)" apiUrl={epaperImagesUrl} onUrlChange={setEpaperImagesUrl} />
                   <EndpointSettings label="Usuwanie E-Papier (DELETE)" apiUrl={epaperDeleteUrl} onUrlChange={setEpaperDeleteUrl} />
                   <EndpointSettings label="Wyświetlanie E-Papier (POST)" apiUrl={epaperShowUrl} onUrlChange={setEpaperShowUrl} />
+                </div>
+              )}
+
+              {settingsTab === 'system' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  <div className="space-y-2">
+                    <EndpointSettings label="Shutdown (POST)" apiUrl={shutdownUrl} onUrlChange={setShutdownUrl} />
+                    <EndpointSettings label="Reboot (POST)" apiUrl={rebootUrl} onUrlChange={setRebootUrl} />
+                  </div>
+                  <SystemControls shutdownUrl={shutdownUrl} rebootUrl={rebootUrl} />
                 </div>
               )}
             </div>
