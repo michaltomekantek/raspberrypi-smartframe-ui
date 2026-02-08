@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { Image as ImageIcon, Info, BarChart3, Library, Monitor, Tablet, Settings as SettingsIcon } from 'lucide-react';
+import { Image as ImageIcon, Info, BarChart3, Library, Monitor, Tablet, Settings as SettingsIcon, Globe } from 'lucide-react';
 import ImageUpload from './components/ImageUpload';
 import EndpointSettings from './components/EndpointSettings';
 import DeviceInfo from './components/DeviceInfo';
@@ -12,6 +12,7 @@ import SlideshowControls from './components/SlideshowControls';
 function App() {
   const [activeDevice, setActiveDevice] = useState<'ips' | 'epaper' | 'settings'>('ips');
   const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats' | 'images'>('upload');
+  const [settingsTab, setSettingsTab] = useState<'ips' | 'epaper'>('ips');
   
   const [globalIp, setGlobalIp] = useState(() => {
     return localStorage.getItem('smartframe_global_ip') || 'localhost';
@@ -51,7 +52,6 @@ function App() {
       urlObj.hostname = newHost;
       return urlObj.toString();
     } catch (e) {
-      // Fallback jeśli URL jest nieprawidłowy
       return url.replace(/(https?:\/\/)[^/:]+/, `$1${newHost}`);
     }
   };
@@ -186,21 +186,47 @@ function App() {
 
         {activeDevice === 'settings' && (
           <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="w-full mb-6">
-              <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4 px-2">Konfiguracja Globalna</h2>
+            <div className="w-full mb-8">
+              <div className="flex items-center gap-2 px-2 mb-4 text-zinc-400">
+                <Globe size={16} />
+                <h2 className="text-sm font-bold uppercase tracking-widest">Konfiguracja Globalna</h2>
+              </div>
               <GlobalIpSettings globalIp={globalIp} onIpChange={handleGlobalIpApply} />
             </div>
 
             <div className="w-full">
-              <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4 px-2">Endpointy Ramki IPS</h2>
-              <div className="space-y-2">
-                <EndpointSettings label="Upload (POST)" apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
-                <EndpointSettings label="Lista Zdjęć (GET/PATCH/DELETE)" apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
-                <EndpointSettings label="System Info (GET)" apiUrl={infoUrl} onUrlChange={setInfoUrl} />
-                <EndpointSettings label="Statystyki (GET)" apiUrl={statsUrl} onUrlChange={setStatsUrl} />
-                <EndpointSettings label="Start Pokazu (GET)" apiUrl={startUrl} onUrlChange={setStartUrl} />
-                <EndpointSettings label="Stop Pokazu (GET)" apiUrl={stopUrl} onUrlChange={setStopUrl} />
+              <div className="flex bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 mb-6">
+                <button
+                  onClick={() => setSettingsTab('ips')}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all
+                    ${settingsTab === 'ips' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  RAMKA IPS
+                </button>
+                <button
+                  onClick={() => setSettingsTab('epaper')}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all
+                    ${settingsTab === 'epaper' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  RAMKA E-PAPIER
+                </button>
               </div>
+
+              {settingsTab === 'ips' ? (
+                <div className="space-y-2 animate-in fade-in duration-200">
+                  <EndpointSettings label="Upload (POST)" apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
+                  <EndpointSettings label="Lista Zdjęć (GET/PATCH/DELETE)" apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
+                  <EndpointSettings label="System Info (GET)" apiUrl={infoUrl} onUrlChange={setInfoUrl} />
+                  <EndpointSettings label="Statystyki (GET)" apiUrl={statsUrl} onUrlChange={setStatsUrl} />
+                  <EndpointSettings label="Start Pokazu (GET)" apiUrl={startUrl} onUrlChange={setStartUrl} />
+                  <EndpointSettings label="Stop Pokazu (GET)" apiUrl={stopUrl} onUrlChange={setStopUrl} />
+                </div>
+              ) : (
+                <div className="p-12 bg-zinc-900/30 border border-zinc-800 border-dashed rounded-2xl flex flex-col items-center justify-center text-zinc-500 gap-3 animate-in fade-in duration-200">
+                  <Tablet size={32} className="opacity-20" />
+                  <p className="text-xs uppercase tracking-widest">Brak endpointów dla E-Papieru</p>
+                </div>
+              )}
             </div>
           </div>
         )}
