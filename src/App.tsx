@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import { Image as ImageIcon, Info, BarChart3, Library, Monitor, Tablet, Settings as SettingsIcon } from 'lucide-react';
 import ImageUpload from './components/ImageUpload';
 import EndpointSettings from './components/EndpointSettings';
@@ -51,6 +51,7 @@ function App() {
       urlObj.hostname = newHost;
       return urlObj.toString();
     } catch (e) {
+      // Fallback jeśli URL jest nieprawidłowy
       return url.replace(/(https?:\/\/)[^/:]+/, `$1${newHost}`);
     }
   };
@@ -64,6 +65,8 @@ function App() {
     setIntervalUrl(prev => replaceHost(prev, newIp));
     setStartUrl(prev => replaceHost(prev, newIp));
     setStopUrl(prev => replaceHost(prev, newIp));
+    
+    toast.success(`Zaktualizowano wszystkie adresy na: ${newIp}`);
   };
 
   useEffect(() => {
