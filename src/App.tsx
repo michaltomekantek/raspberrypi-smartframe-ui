@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { Image as ImageIcon, Info, BarChart3, Library, Monitor, Tablet, Settings as SettingsIcon, Globe } from 'lucide-react';
+import { Image as ImageIcon, Info, BarChart3, Library, Monitor, Tablet, Settings as SettingsIcon, Globe, Type } from 'lucide-react';
 import ImageUpload from './components/ImageUpload';
 import EndpointSettings from './components/EndpointSettings';
 import DeviceInfo from './components/DeviceInfo';
@@ -10,11 +10,12 @@ import ImageList from './components/ImageList';
 import SlideshowControls from './components/SlideshowControls';
 import EpaperUpload from './components/EpaperUpload';
 import EpaperImageList from './components/EpaperImageList';
+import EpaperText from './components/EpaperText';
 
 function App() {
   const [activeDevice, setActiveDevice] = useState<'ips' | 'epaper' | 'settings'>('ips');
   const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats' | 'images'>('upload');
-  const [epaperTab, setEpaperTab] = useState<'upload' | 'images'>('upload');
+  const [epaperTab, setEpaperTab] = useState<'upload' | 'images' | 'text'>('upload');
   const [settingsTab, setSettingsTab] = useState<'ips' | 'epaper'>('ips');
   
   const [globalIp, setGlobalIp] = useState(() => {
@@ -54,6 +55,9 @@ function App() {
   const [epaperShowUrl, setEpaperShowUrl] = useState(() => {
     return localStorage.getItem('smartframe_epaper_show_url') || 'http://192.168.0.194:8000/epaper/show';
   });
+  const [epaperTextUrl, setEpaperTextUrl] = useState(() => {
+    return localStorage.getItem('smartframe_epaper_text_url') || 'http://192.168.0.194:8000/epaper/text';
+  });
 
   const replaceHost = (url: string, newHost: string) => {
     try {
@@ -77,6 +81,7 @@ function App() {
     setEpaperUploadUrl(prev => replaceHost(prev, newIp));
     setEpaperImagesUrl(prev => replaceHost(prev, newIp));
     setEpaperShowUrl(prev => replaceHost(prev, newIp));
+    setEpaperTextUrl(prev => replaceHost(prev, newIp));
     
     toast.success(`Zaktualizowano wszystkie adresy na: ${newIp}`);
   };
@@ -96,7 +101,8 @@ function App() {
     localStorage.setItem('smartframe_epaper_upload_url', epaperUploadUrl);
     localStorage.setItem('smartframe_epaper_images_url', epaperImagesUrl);
     localStorage.setItem('smartframe_epaper_show_url', epaperShowUrl);
-  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl]);
+    localStorage.setItem('smartframe_epaper_text_url', epaperTextUrl);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl, epaperTextUrl]);
 
   const getBaseUrl = (url: string) => {
     try {
@@ -203,6 +209,14 @@ function App() {
                 Wgraj
               </button>
               <button
+                onClick={() => setEpaperTab('text')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
+                  ${epaperTab === 'text' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                <Type size={16} />
+                Tekst
+              </button>
+              <button
                 onClick={() => setEpaperTab('images')}
                 className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-all whitespace-nowrap
                   ${epaperTab === 'images' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
@@ -212,11 +226,9 @@ function App() {
               </button>
             </div>
 
-            {epaperTab === 'upload' ? (
-              <EpaperUpload apiUrl={epaperUploadUrl} />
-            ) : (
-              <EpaperImageList apiUrl={epaperImagesUrl} showUrl={epaperShowUrl} />
-            )}
+            {epaperTab === 'upload' && <EpaperUpload apiUrl={epaperUploadUrl} />}
+            {epaperTab === 'text' && <EpaperText apiUrl={epaperTextUrl} />}
+            {epaperTab === 'images' && <EpaperImageList apiUrl={epaperImagesUrl} showUrl={epaperShowUrl} />}
           </div>
         )}
 
@@ -260,6 +272,7 @@ function App() {
               ) : (
                 <div className="space-y-2 animate-in fade-in duration-200">
                   <EndpointSettings label="Upload E-Papier (POST)" apiUrl={epaperUploadUrl} onUrlChange={setEpaperUploadUrl} />
+                  <EndpointSettings label="Tekst E-Papier (POST)" apiUrl={epaperTextUrl} onUrlChange={setEpaperTextUrl} />
                   <EndpointSettings label="Lista Zdjęć E-Papier (GET/PATCH/DELETE)" apiUrl={epaperImagesUrl} onUrlChange={setEpaperImagesUrl} />
                   <EndpointSettings label="Wyświetlanie E-Papier (POST)" apiUrl={epaperShowUrl} onUrlChange={setEpaperShowUrl} />
                 </div>
