@@ -12,16 +12,14 @@ interface EpaperImage {
 
 interface EpaperImageListProps {
   apiUrl: string;
+  showUrl: string;
 }
 
-const EpaperImageList = ({ apiUrl }: EpaperImageListProps) => {
+const EpaperImageList = ({ apiUrl, showUrl }: EpaperImageListProps) => {
   const [images, setImages] = useState<EpaperImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingImageId, setLoadingImageId] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  // Wyciągamy bazowy URL dla endpointu /show (zakładając strukturę .../epaper/images)
-  const showBaseUrl = apiUrl.replace('/images', '/show');
 
   const fetchImages = async () => {
     setLoading(true);
@@ -42,7 +40,7 @@ const EpaperImageList = ({ apiUrl }: EpaperImageListProps) => {
   const handleShowOnFrame = async (id: number) => {
     setLoadingImageId(id);
     try {
-      const response = await fetch(`${showBaseUrl}/${id}`, {
+      const response = await fetch(`${showUrl}/${id}`, {
         method: 'GET',
         headers: { 'accept': 'application/json' }
       });

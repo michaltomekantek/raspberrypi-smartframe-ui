@@ -51,6 +51,9 @@ function App() {
   const [epaperImagesUrl, setEpaperImagesUrl] = useState(() => {
     return localStorage.getItem('smartframe_epaper_images_url') || 'http://192.168.0.194:8000/epaper/images';
   });
+  const [epaperShowUrl, setEpaperShowUrl] = useState(() => {
+    return localStorage.getItem('smartframe_epaper_show_url') || 'http://192.168.0.194:8000/epaper/show';
+  });
 
   const replaceHost = (url: string, newHost: string) => {
     try {
@@ -73,6 +76,7 @@ function App() {
     setStopUrl(prev => replaceHost(prev, newIp));
     setEpaperUploadUrl(prev => replaceHost(prev, newIp));
     setEpaperImagesUrl(prev => replaceHost(prev, newIp));
+    setEpaperShowUrl(prev => replaceHost(prev, newIp));
     
     toast.success(`Zaktualizowano wszystkie adresy na: ${newIp}`);
   };
@@ -91,7 +95,8 @@ function App() {
     localStorage.setItem('smartframe_stop_url', stopUrl);
     localStorage.setItem('smartframe_epaper_upload_url', epaperUploadUrl);
     localStorage.setItem('smartframe_epaper_images_url', epaperImagesUrl);
-  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl]);
+    localStorage.setItem('smartframe_epaper_show_url', epaperShowUrl);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl]);
 
   const getBaseUrl = (url: string) => {
     try {
@@ -210,7 +215,7 @@ function App() {
             {epaperTab === 'upload' ? (
               <EpaperUpload apiUrl={epaperUploadUrl} />
             ) : (
-              <EpaperImageList apiUrl={epaperImagesUrl} />
+              <EpaperImageList apiUrl={epaperImagesUrl} showUrl={epaperShowUrl} />
             )}
           </div>
         )}
@@ -256,6 +261,7 @@ function App() {
                 <div className="space-y-2 animate-in fade-in duration-200">
                   <EndpointSettings label="Upload E-Papier (POST)" apiUrl={epaperUploadUrl} onUrlChange={setEpaperUploadUrl} />
                   <EndpointSettings label="Lista Zdjęć E-Papier (GET/PATCH/DELETE)" apiUrl={epaperImagesUrl} onUrlChange={setEpaperImagesUrl} />
+                  <EndpointSettings label="Wyświetlanie E-Papier (GET)" apiUrl={epaperShowUrl} onUrlChange={setEpaperShowUrl} />
                 </div>
               )}
             </div>
