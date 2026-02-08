@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Image as ImageIcon, Trash2, CheckCircle2, XCircle, X } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, Trash2, CheckCircle2, XCircle, X, MonitorPlay } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface EpaperImage {
@@ -17,7 +17,11 @@ interface EpaperImageListProps {
 const EpaperImageList = ({ apiUrl }: EpaperImageListProps) => {
   const [images, setImages] = useState<EpaperImage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingImageId, setLoadingImageId] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Wyciągamy bazowy URL dla endpointu /show (zakładając strukturę .../epaper/images)
+  const showBaseUrl = apiUrl.replace('/images', '/show');
 
   const fetchImages = async () => {
     setLoading(true);
@@ -32,6 +36,22 @@ const EpaperImageList = ({ apiUrl }: EpaperImageListProps) => {
       toast.error("Nie udało się pobrać zdjęć E-Papieru");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleShowOnFrame = async (id: number) => {
+    setLoadingImageId(id);
+    try {
+      const response = await fetch(`${showBaseUrl}/${id}`, {
+        method: 'GET',
+        headers: { 'accept': 'application/json' }
+      });
+      if (!response.ok) throw new Error('Błąd odświeżania ekranu');
+      toast.success("Zlecono wyświetlenie na ramce");
+    } catch (error) {
+      toast.error("Błąd połączenia z ramką");
+    } finally {
+      setLoadingImageId(null);
     }
   };
 
@@ -106,6 +126,15 @@ const EpaperImageList = ({ apiUrl }: EpaperImageListProps) => {
 
               <div className="flex items-center gap-1">
                 <button
+                  onClick={() => handleShowOnFrame(img.id)}
+                  disabled={loadingImageId !== null}
+                  className={`p-3 rounded-xl transition-all text-blue-400 hover:bg-blue-500/10 disabled:opacity-50`}
+                  title="Załaduj na ekran"
+                >
+                  <MonitorPlay size={24} />
+                </button>
+
+                <button
                   onClick={() => toggleActive(img.id, img.is_active)}
                   className={`p-3 rounded-xl transition-all ${img.is_active ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-zinc-600 hover:bg-zinc-800'}`}
                 >
@@ -121,6 +150,17 @@ const EpaperImageList = ({ apiUrl }: EpaperImageListProps) => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Loading Overlay for Screen Refresh */}
+      {loadingImageId !== null && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
+          <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+          <div className="text-center">
+            <p className="text-xl font-bold text-white">UWAGA</p>
+            <p className="text-blue-400 font-medium">Odświeżam ekran ramki...</p>
+          </div>
         </div>
       )}
 
