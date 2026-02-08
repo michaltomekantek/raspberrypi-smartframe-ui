@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { Image as ImageIcon, Info, BarChart3, Library, Monitor, Tablet } from 'lucide-react';
+import { Image as ImageIcon, Info, BarChart3, Library, Monitor, Tablet, Settings as SettingsIcon } from 'lucide-react';
 import ImageUpload from './components/ImageUpload';
 import EndpointSettings from './components/EndpointSettings';
 import DeviceInfo from './components/DeviceInfo';
@@ -10,7 +10,7 @@ import ImageList from './components/ImageList';
 import SlideshowControls from './components/SlideshowControls';
 
 function App() {
-  const [activeDevice, setActiveDevice] = useState<'ips' | 'epaper'>('ips');
+  const [activeDevice, setActiveDevice] = useState<'ips' | 'epaper' | 'settings'>('ips');
   const [activeTab, setActiveTab] = useState<'upload' | 'info' | 'stats' | 'images'>('upload');
   
   const [globalIp, setGlobalIp] = useState(() => {
@@ -99,29 +99,36 @@ function App() {
       </div>
 
       {/* Main Device Switcher */}
-      <div className="w-full max-w-xl flex bg-zinc-900/50 p-1 rounded-2xl border border-zinc-800 mb-8">
+      <div className="w-full max-w-xl flex bg-zinc-900/50 p-1 rounded-2xl border border-zinc-800 mb-8 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveDevice('ips')}
-          className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-bold transition-all
+          className={`flex-1 flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-xs font-bold transition-all whitespace-nowrap
             ${activeDevice === 'ips' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
-          <Monitor size={18} />
+          <Monitor size={16} />
           RAMKA IPS
         </button>
         <button
           onClick={() => setActiveDevice('epaper')}
-          className={`flex-1 flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-bold transition-all
+          className={`flex-1 flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-xs font-bold transition-all whitespace-nowrap
             ${activeDevice === 'epaper' ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
-          <Tablet size={18} />
+          <Tablet size={16} />
           RAMKA E-PAPIER
+        </button>
+        <button
+          onClick={() => setActiveDevice('settings')}
+          className={`flex-1 flex items-center justify-center gap-3 py-3 px-4 rounded-xl text-xs font-bold transition-all whitespace-nowrap
+            ${activeDevice === 'settings' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+        >
+          <SettingsIcon size={16} />
+          USTAWIENIA
         </button>
       </div>
 
       <div className="w-full max-w-xl flex flex-col items-center">
-        {activeDevice === 'ips' ? (
+        {activeDevice === 'ips' && (
           <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <GlobalIpSettings globalIp={globalIp} onIpChange={handleGlobalIpApply} />
             <SlideshowControls startUrl={startUrl} stopUrl={stopUrl} />
 
             <div className="flex bg-zinc-900 p-1 rounded-xl border border-zinc-800 w-full mb-4 overflow-x-auto no-scrollbar">
@@ -159,39 +166,39 @@ function App() {
               </button>
             </div>
 
-            {activeTab === 'upload' && (
-              <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
-                <EndpointSettings label="Upload Endpoint" apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
-                <ImageUpload apiUrl={uploadUrl} />
-              </div>
-            )}
-
-            {activeTab === 'images' && (
-              <div className="w-full flex flex-col gap-2 animate-in fade-in duration-300">
-                <EndpointSettings label="List Images" apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
-                <ImageList apiUrl={imagesUrl} baseUrl={getBaseUrl(imagesUrl)} />
-              </div>
-            )}
-
-            {activeTab === 'info' && (
-              <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
-                <EndpointSettings label="System Info Endpoint" apiUrl={infoUrl} onUrlChange={setInfoUrl} />
-                <DeviceInfo apiUrl={infoUrl} />
-              </div>
-            )}
-
-            {activeTab === 'stats' && (
-              <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300">
-                <EndpointSettings label="Show Stats Endpoint" apiUrl={statsUrl} onUrlChange={setStatsUrl} />
-                <ShowStats apiUrl={statsUrl} />
-              </div>
-            )}
+            {activeTab === 'upload' && <ImageUpload apiUrl={uploadUrl} />}
+            {activeTab === 'images' && <ImageList apiUrl={imagesUrl} baseUrl={getBaseUrl(imagesUrl)} />}
+            {activeTab === 'info' && <DeviceInfo apiUrl={infoUrl} />}
+            {activeTab === 'stats' && <ShowStats apiUrl={statsUrl} />}
           </div>
-        ) : (
+        )}
+
+        {activeDevice === 'epaper' && (
           <div className="w-full flex flex-col items-center justify-center py-20 text-zinc-600 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <Tablet size={64} className="mb-4 opacity-20" />
             <h2 className="text-xl font-bold text-zinc-400">Ramka E-Papier</h2>
             <p className="text-sm mt-2">Funkcjonalność w przygotowaniu...</p>
+          </div>
+        )}
+
+        {activeDevice === 'settings' && (
+          <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="w-full mb-6">
+              <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4 px-2">Konfiguracja Globalna</h2>
+              <GlobalIpSettings globalIp={globalIp} onIpChange={handleGlobalIpApply} />
+            </div>
+
+            <div className="w-full">
+              <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4 px-2">Endpointy Ramki IPS</h2>
+              <div className="space-y-2">
+                <EndpointSettings label="Upload (POST)" apiUrl={uploadUrl} onUrlChange={setUploadUrl} />
+                <EndpointSettings label="Lista Zdjęć (GET/PATCH/DELETE)" apiUrl={imagesUrl} onUrlChange={setImagesUrl} />
+                <EndpointSettings label="System Info (GET)" apiUrl={infoUrl} onUrlChange={setInfoUrl} />
+                <EndpointSettings label="Statystyki (GET)" apiUrl={statsUrl} onUrlChange={setStatsUrl} />
+                <EndpointSettings label="Start Pokazu (GET)" apiUrl={startUrl} onUrlChange={setStartUrl} />
+                <EndpointSettings label="Stop Pokazu (GET)" apiUrl={stopUrl} onUrlChange={setStopUrl} />
+              </div>
+            </div>
           </div>
         )}
       </div>
