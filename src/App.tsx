@@ -8,6 +8,7 @@ import ShowStats from './components/ShowStats';
 import GlobalIpSettings from './components/GlobalIpSettings';
 import ImageList from './components/ImageList';
 import SlideshowControls from './components/SlideshowControls';
+import EpaperUpload from './components/EpaperUpload';
 
 function App() {
   const [activeDevice, setActiveDevice] = useState<'ips' | 'epaper' | 'settings'>('ips');
@@ -19,32 +20,32 @@ function App() {
     return localStorage.getItem('smartframe_global_ip') || 'localhost';
   });
 
+  // IPS Endpoints
   const [uploadUrl, setUploadUrl] = useState(() => {
     return localStorage.getItem('smartframe_upload_url') || 'http://localhost:8000/upload';
   });
-  
   const [infoUrl, setInfoUrl] = useState(() => {
     return localStorage.getItem('smartframe_info_url') || 'http://localhost:8000/system-info';
   });
-
   const [statsUrl, setStatsUrl] = useState(() => {
     return localStorage.getItem('smartframe_stats_url') || 'http://localhost:8000/show-stats';
   });
-
   const [imagesUrl, setImagesUrl] = useState(() => {
     return localStorage.getItem('smartframe_images_url') || 'http://localhost:8000/images';
   });
-
   const [intervalUrl, setIntervalUrl] = useState(() => {
     return localStorage.getItem('smartframe_interval_url') || 'http://localhost:8000/settings/interval';
   });
-
   const [startUrl, setStartUrl] = useState(() => {
     return localStorage.getItem('smartframe_start_url') || 'http://localhost:8000/start-slideshow';
   });
-
   const [stopUrl, setStopUrl] = useState(() => {
     return localStorage.getItem('smartframe_stop_url') || 'http://localhost:8000/stop-all';
+  });
+
+  // E-Paper Endpoints
+  const [epaperUploadUrl, setEpaperUploadUrl] = useState(() => {
+    return localStorage.getItem('smartframe_epaper_upload_url') || 'http://localhost:8000/epaper/upload';
   });
 
   const replaceHost = (url: string, newHost: string) => {
@@ -66,6 +67,7 @@ function App() {
     setIntervalUrl(prev => replaceHost(prev, newIp));
     setStartUrl(prev => replaceHost(prev, newIp));
     setStopUrl(prev => replaceHost(prev, newIp));
+    setEpaperUploadUrl(prev => replaceHost(prev, newIp));
     
     toast.success(`Zaktualizowano wszystkie adresy na: ${newIp}`);
   };
@@ -82,7 +84,8 @@ function App() {
     localStorage.setItem('smartframe_interval_url', intervalUrl);
     localStorage.setItem('smartframe_start_url', startUrl);
     localStorage.setItem('smartframe_stop_url', stopUrl);
-  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl]);
+    localStorage.setItem('smartframe_epaper_upload_url', epaperUploadUrl);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl]);
 
   const getBaseUrl = (url: string) => {
     try {
@@ -198,13 +201,15 @@ function App() {
               </button>
             </div>
 
-            <div className="w-full flex flex-col items-center justify-center py-20 text-zinc-600">
-              <Tablet size={64} className="mb-4 opacity-20" />
-              <h2 className="text-xl font-bold text-zinc-400">
-                {epaperTab === 'upload' ? 'Wgrywanie na E-Papier' : 'Biblioteka E-Papier'}
-              </h2>
-              <p className="text-sm mt-2">Funkcjonalność w przygotowaniu...</p>
-            </div>
+            {epaperTab === 'upload' ? (
+              <EpaperUpload apiUrl={epaperUploadUrl} />
+            ) : (
+              <div className="w-full flex flex-col items-center justify-center py-20 text-zinc-600">
+                <Library size={64} className="mb-4 opacity-20" />
+                <h2 className="text-xl font-bold text-zinc-400">Biblioteka E-Papier</h2>
+                <p className="text-sm mt-2">Funkcjonalność w przygotowaniu...</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -246,9 +251,8 @@ function App() {
                   <EndpointSettings label="Stop Pokazu (GET)" apiUrl={stopUrl} onUrlChange={setStopUrl} />
                 </div>
               ) : (
-                <div className="p-12 bg-zinc-900/30 border border-zinc-800 border-dashed rounded-2xl flex flex-col items-center justify-center text-zinc-500 gap-3 animate-in fade-in duration-200">
-                  <Tablet size={32} className="opacity-20" />
-                  <p className="text-xs uppercase tracking-widest">Brak endpointów dla E-Papieru</p>
+                <div className="space-y-2 animate-in fade-in duration-200">
+                  <EndpointSettings label="Upload E-Papier (POST)" apiUrl={epaperUploadUrl} onUrlChange={setEpaperUploadUrl} />
                 </div>
               )}
             </div>
