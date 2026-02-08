@@ -58,6 +58,9 @@ function App() {
   const [epaperTextUrl, setEpaperTextUrl] = useState(() => {
     return localStorage.getItem('smartframe_epaper_text_url') || 'http://192.168.0.194:8000/epaper/show-text';
   });
+  const [epaperDeleteUrl, setEpaperDeleteUrl] = useState(() => {
+    return localStorage.getItem('smartframe_epaper_delete_url') || 'http://192.168.0.194:8000/epaper/images';
+  });
 
   const replaceHost = (url: string, newHost: string) => {
     try {
@@ -82,6 +85,7 @@ function App() {
     setEpaperImagesUrl(prev => replaceHost(prev, newIp));
     setEpaperShowUrl(prev => replaceHost(prev, newIp));
     setEpaperTextUrl(prev => replaceHost(prev, newIp));
+    setEpaperDeleteUrl(prev => replaceHost(prev, newIp));
     
     toast.success(`Zaktualizowano wszystkie adresy na: ${newIp}`);
   };
@@ -102,7 +106,8 @@ function App() {
     localStorage.setItem('smartframe_epaper_images_url', epaperImagesUrl);
     localStorage.setItem('smartframe_epaper_show_url', epaperShowUrl);
     localStorage.setItem('smartframe_epaper_text_url', epaperTextUrl);
-  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl, epaperTextUrl]);
+    localStorage.setItem('smartframe_epaper_delete_url', epaperDeleteUrl);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl, epaperTextUrl, epaperDeleteUrl]);
 
   const getBaseUrl = (url: string) => {
     try {
@@ -228,7 +233,7 @@ function App() {
 
             {epaperTab === 'upload' && <EpaperUpload apiUrl={epaperUploadUrl} />}
             {epaperTab === 'text' && <EpaperText apiUrl={epaperTextUrl} />}
-            {epaperTab === 'images' && <EpaperImageList apiUrl={epaperImagesUrl} showUrl={epaperShowUrl} />}
+            {epaperTab === 'images' && <EpaperImageList apiUrl={epaperImagesUrl} showUrl={epaperShowUrl} deleteUrl={epaperDeleteUrl} />}
           </div>
         )}
 
@@ -273,7 +278,8 @@ function App() {
                 <div className="space-y-2 animate-in fade-in duration-200">
                   <EndpointSettings label="Upload E-Papier (POST)" apiUrl={epaperUploadUrl} onUrlChange={setEpaperUploadUrl} />
                   <EndpointSettings label="Tekst E-Papier (POST + Query)" apiUrl={epaperTextUrl} onUrlChange={setEpaperTextUrl} />
-                  <EndpointSettings label="Lista Zdjęć E-Papier (GET/PATCH/DELETE)" apiUrl={epaperImagesUrl} onUrlChange={setEpaperImagesUrl} />
+                  <EndpointSettings label="Lista Zdjęć E-Papier (GET/PATCH)" apiUrl={epaperImagesUrl} onUrlChange={setEpaperImagesUrl} />
+                  <EndpointSettings label="Usuwanie E-Papier (DELETE)" apiUrl={epaperDeleteUrl} onUrlChange={setEpaperDeleteUrl} />
                   <EndpointSettings label="Wyświetlanie E-Papier (POST)" apiUrl={epaperShowUrl} onUrlChange={setEpaperShowUrl} />
                 </div>
               )}

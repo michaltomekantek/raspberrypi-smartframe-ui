@@ -13,9 +13,10 @@ interface EpaperImage {
 interface EpaperImageListProps {
   apiUrl: string;
   showUrl: string;
+  deleteUrl: string;
 }
 
-const EpaperImageList = ({ apiUrl, showUrl }: EpaperImageListProps) => {
+const EpaperImageList = ({ apiUrl, showUrl, deleteUrl }: EpaperImageListProps) => {
   const [images, setImages] = useState<EpaperImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingImageId, setLoadingImageId] = useState<number | null>(null);
@@ -79,7 +80,7 @@ const EpaperImageList = ({ apiUrl, showUrl }: EpaperImageListProps) => {
     if (!confirm("Usunąć to zdjęcie z E-Papieru?")) return;
     
     try {
-      const response = await fetch(`${apiUrl}/${id}`, {
+      const response = await fetch(`${deleteUrl}/${id}`, {
         method: 'DELETE',
         headers: { 'accept': 'application/json' }
       });
