@@ -9,6 +9,7 @@ import GlobalIpSettings from './components/GlobalIpSettings';
 import ImageList from './components/ImageList';
 import SlideshowControls from './components/SlideshowControls';
 import EpaperUpload from './components/EpaperUpload';
+import EpaperImageList from './components/EpaperImageList';
 
 function App() {
   const [activeDevice, setActiveDevice] = useState<'ips' | 'epaper' | 'settings'>('ips');
@@ -47,6 +48,9 @@ function App() {
   const [epaperUploadUrl, setEpaperUploadUrl] = useState(() => {
     return localStorage.getItem('smartframe_epaper_upload_url') || 'http://localhost:8000/epaper/upload';
   });
+  const [epaperImagesUrl, setEpaperImagesUrl] = useState(() => {
+    return localStorage.getItem('smartframe_epaper_images_url') || 'http://localhost:8000/epaper/images';
+  });
 
   const replaceHost = (url: string, newHost: string) => {
     try {
@@ -68,6 +72,7 @@ function App() {
     setStartUrl(prev => replaceHost(prev, newIp));
     setStopUrl(prev => replaceHost(prev, newIp));
     setEpaperUploadUrl(prev => replaceHost(prev, newIp));
+    setEpaperImagesUrl(prev => replaceHost(prev, newIp));
     
     toast.success(`Zaktualizowano wszystkie adresy na: ${newIp}`);
   };
@@ -85,7 +90,8 @@ function App() {
     localStorage.setItem('smartframe_start_url', startUrl);
     localStorage.setItem('smartframe_stop_url', stopUrl);
     localStorage.setItem('smartframe_epaper_upload_url', epaperUploadUrl);
-  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl]);
+    localStorage.setItem('smartframe_epaper_images_url', epaperImagesUrl);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl]);
 
   const getBaseUrl = (url: string) => {
     try {
@@ -204,11 +210,7 @@ function App() {
             {epaperTab === 'upload' ? (
               <EpaperUpload apiUrl={epaperUploadUrl} />
             ) : (
-              <div className="w-full flex flex-col items-center justify-center py-20 text-zinc-600">
-                <Library size={64} className="mb-4 opacity-20" />
-                <h2 className="text-xl font-bold text-zinc-400">Biblioteka E-Papier</h2>
-                <p className="text-sm mt-2">Funkcjonalność w przygotowaniu...</p>
-              </div>
+              <EpaperImageList apiUrl={epaperImagesUrl} />
             )}
           </div>
         )}
@@ -253,6 +255,7 @@ function App() {
               ) : (
                 <div className="space-y-2 animate-in fade-in duration-200">
                   <EndpointSettings label="Upload E-Papier (POST)" apiUrl={epaperUploadUrl} onUrlChange={setEpaperUploadUrl} />
+                  <EndpointSettings label="Lista Zdjęć E-Papier (GET/PATCH/DELETE)" apiUrl={epaperImagesUrl} onUrlChange={setEpaperImagesUrl} />
                 </div>
               )}
             </div>
