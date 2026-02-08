@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Type, Send, RefreshCw, AlertCircle, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Type, Send, RefreshCw, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Heading } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface EpaperTextProps {
@@ -7,6 +7,7 @@ interface EpaperTextProps {
 }
 
 const EpaperText = ({ apiUrl }: EpaperTextProps) => {
+  const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
@@ -26,13 +27,19 @@ const EpaperText = ({ apiUrl }: EpaperTextProps) => {
     setDebugData(null);
     
     try {
-      const response = await fetch(apiUrl, {
+      // Budowanie URL z parametrami query
+      const url = new URL(apiUrl);
+      url.searchParams.append('text', text);
+      if (title.trim()) {
+        url.searchParams.append('title', title);
+      }
+
+      const response = await fetch(url.toString(), {
         method: 'POST',
         headers: { 
-          'accept': 'application/json',
-          'Content-Type': 'application/json'
+          'accept': 'application/json'
         },
-        body: JSON.stringify({ text: text })
+        body: '' // Puste body zgodnie z wymaganiem
       });
 
       const responseText = await response.text();
@@ -47,6 +54,7 @@ const EpaperText = ({ apiUrl }: EpaperTextProps) => {
       if (isOk) {
         toast.success("Tekst wysłany na E-Papier!");
         setText('');
+        setTitle('');
       } else {
         toast.error(`Błąd: ${response.status}`);
         setShowLogs(true);
@@ -67,18 +75,38 @@ const EpaperText = ({ apiUrl }: EpaperTextProps) => {
   return (
     <div className="w-full max-w-xl flex flex-col gap-4">
       <div className="p-6 bg-zinc-900 rounded-2xl border border-zinc-800 shadow-xl">
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5">
           <div className="flex items-center gap-3 text-zinc-400">
             <Type size={20} />
             <h3 className="font-bold uppercase tracking-wider text-sm">Wyślij Tekst na Ekran</h3>
           </div>
 
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Wpisz wiadomość..."
-            className="w-full h-32 bg-black/40 border border-zinc-800 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 transition-colors text-white resize-none"
-          />
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-1">
+                <Heading size={10} /> Tytuł (Opcjonalnie)
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Nagłówek wiadomości..."
+                className="w-full bg-black/40 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors text-white"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-1 flex items-center gap-1">
+                <Type size={10} /> Treść Wiadomości
+              </label>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Wpisz treść..."
+                className="w-full h-32 bg-black/40 border border-zinc-800 rounded-xl p-4 text-sm focus:outline-none focus:border-blue-500 transition-colors text-white resize-none"
+              />
+            </div>
+          </div>
 
           <button
             onClick={handleSendText}
@@ -92,6 +120,7 @@ const EpaperText = ({ apiUrl }: EpaperTextProps) => {
         </div>
       </div>
 
+      {/* Nakładka ładowania podczas odświeżania ekranu */}
       {loading && (
         <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
           <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />

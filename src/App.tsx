@@ -56,7 +56,7 @@ function App() {
     return localStorage.getItem('smartframe_epaper_show_url') || 'http://192.168.0.194:8000/epaper/show';
   });
   const [epaperTextUrl, setEpaperTextUrl] = useState(() => {
-    return localStorage.getItem('smartframe_epaper_text_url') || 'http://192.168.0.194:8000/epaper/text';
+    return localStorage.getItem('smartframe_epaper_text_url') || 'http://192.168.0.194:8000/epaper/show-text';
   });
 
   const replaceHost = (url: string, newHost: string) => {
@@ -272,7 +272,7 @@ function App() {
               ) : (
                 <div className="space-y-2 animate-in fade-in duration-200">
                   <EndpointSettings label="Upload E-Papier (POST)" apiUrl={epaperUploadUrl} onUrlChange={setEpaperUploadUrl} />
-                  <EndpointSettings label="Tekst E-Papier (POST)" apiUrl={epaperTextUrl} onUrlChange={setEpaperTextUrl} />
+                  <EndpointSettings label="Tekst E-Papier (POST + Query)" apiUrl={epaperTextUrl} onUrlChange={setEpaperTextUrl} />
                   <EndpointSettings label="Lista Zdjęć E-Papier (GET/PATCH/DELETE)" apiUrl={epaperImagesUrl} onUrlChange={setEpaperImagesUrl} />
                   <EndpointSettings label="Wyświetlanie E-Papier (POST)" apiUrl={epaperShowUrl} onUrlChange={setEpaperShowUrl} />
                 </div>
