@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Image as ImageIcon, Trash2, CheckCircle2, XCircle } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, Trash2, CheckCircle2, XCircle, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface EpaperImage {
@@ -17,6 +17,7 @@ interface EpaperImageListProps {
 const EpaperImageList = ({ apiUrl }: EpaperImageListProps) => {
   const [images, setImages] = useState<EpaperImage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fetchImages = async () => {
     setLoading(true);
@@ -89,7 +90,10 @@ const EpaperImageList = ({ apiUrl }: EpaperImageListProps) => {
         <div className="grid grid-cols-1 gap-3">
           {images.map((img) => (
             <div key={img.id} className={`p-3 rounded-xl border transition-all flex items-center gap-4 ${img.is_active ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-950 border-zinc-900 opacity-60'}`}>
-              <div className="w-20 h-20 rounded-lg overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700">
+              <div 
+                onClick={() => setSelectedImage(img.url)}
+                className="w-20 h-20 rounded-lg overflow-hidden bg-zinc-800 shrink-0 border border-zinc-700 cursor-pointer hover:opacity-80 transition-opacity"
+              >
                 <img src={img.url} alt={img.filename} className="w-full h-full object-contain" />
               </div>
               
@@ -117,6 +121,24 @@ const EpaperImageList = ({ apiUrl }: EpaperImageListProps) => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Lightbox Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
+            <X size={32} />
+          </button>
+          <img 
+            src={selectedImage} 
+            alt="Powiększenie" 
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>

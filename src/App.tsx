@@ -18,38 +18,38 @@ function App() {
   const [settingsTab, setSettingsTab] = useState<'ips' | 'epaper'>('ips');
   
   const [globalIp, setGlobalIp] = useState(() => {
-    return localStorage.getItem('smartframe_global_ip') || 'localhost';
+    return localStorage.getItem('smartframe_global_ip') || '192.168.0.194';
   });
 
   // IPS Endpoints
   const [uploadUrl, setUploadUrl] = useState(() => {
-    return localStorage.getItem('smartframe_upload_url') || 'http://localhost:8000/upload';
+    return localStorage.getItem('smartframe_upload_url') || 'http://192.168.0.194:8000/upload';
   });
   const [infoUrl, setInfoUrl] = useState(() => {
-    return localStorage.getItem('smartframe_info_url') || 'http://localhost:8000/system-info';
+    return localStorage.getItem('smartframe_info_url') || 'http://192.168.0.194:8000/system-info';
   });
   const [statsUrl, setStatsUrl] = useState(() => {
-    return localStorage.getItem('smartframe_stats_url') || 'http://localhost:8000/show-stats';
+    return localStorage.getItem('smartframe_stats_url') || 'http://192.168.0.194:8000/show-stats';
   });
   const [imagesUrl, setImagesUrl] = useState(() => {
-    return localStorage.getItem('smartframe_images_url') || 'http://localhost:8000/images';
+    return localStorage.getItem('smartframe_images_url') || 'http://192.168.0.194:8000/images';
   });
   const [intervalUrl, setIntervalUrl] = useState(() => {
-    return localStorage.getItem('smartframe_interval_url') || 'http://localhost:8000/settings/interval';
+    return localStorage.getItem('smartframe_interval_url') || 'http://192.168.0.194:8000/settings/interval';
   });
   const [startUrl, setStartUrl] = useState(() => {
-    return localStorage.getItem('smartframe_start_url') || 'http://localhost:8000/start-slideshow';
+    return localStorage.getItem('smartframe_start_url') || 'http://192.168.0.194:8000/start-slideshow';
   });
   const [stopUrl, setStopUrl] = useState(() => {
-    return localStorage.getItem('smartframe_stop_url') || 'http://localhost:8000/stop-all';
+    return localStorage.getItem('smartframe_stop_url') || 'http://192.168.0.194:8000/stop-all';
   });
 
   // E-Paper Endpoints
   const [epaperUploadUrl, setEpaperUploadUrl] = useState(() => {
-    return localStorage.getItem('smartframe_epaper_upload_url') || 'http://localhost:8000/epaper/upload';
+    return localStorage.getItem('smartframe_epaper_upload_url') || 'http://192.168.0.194:8000/epaper/upload';
   });
   const [epaperImagesUrl, setEpaperImagesUrl] = useState(() => {
-    return localStorage.getItem('smartframe_epaper_images_url') || 'http://localhost:8000/epaper/images';
+    return localStorage.getItem('smartframe_epaper_images_url') || 'http://192.168.0.194:8000/epaper/images';
   });
 
   const replaceHost = (url: string, newHost: string) => {
@@ -98,7 +98,7 @@ function App() {
       const urlObj = new URL(url);
       return `${urlObj.protocol}//${urlObj.host}`;
     } catch (e) {
-      return 'http://localhost:8000';
+      return 'http://192.168.0.194:8000';
     }
   };
 
