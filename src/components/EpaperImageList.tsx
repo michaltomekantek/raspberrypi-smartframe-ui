@@ -48,8 +48,11 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl }: EpaperImag
       });
       if (response.ok) {
         const data = await response.json();
+        // Obsługa formatu {"seconds": X} lub po prostu X
         const seconds = typeof data === 'object' ? data.seconds : data;
-        setIntervalSeconds(seconds);
+        if (seconds !== undefined) {
+          setIntervalSeconds(seconds);
+        }
       }
     } catch (error) {
       console.error("Nie udało się pobrać interwału E-Papieru");

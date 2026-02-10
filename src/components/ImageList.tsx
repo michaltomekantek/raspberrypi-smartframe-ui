@@ -42,7 +42,9 @@ const ImageList = ({ apiUrl, baseUrl }: ImageListProps) => {
       if (response.ok) {
         const data = await response.json();
         const seconds = typeof data === 'object' ? data.seconds : data;
-        setIntervalSeconds(seconds);
+        if (seconds !== undefined) {
+          setIntervalSeconds(seconds);
+        }
       }
     } catch (error) {
       console.error("Nie udało się pobrać interwału");
