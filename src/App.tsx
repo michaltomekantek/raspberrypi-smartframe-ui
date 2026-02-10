@@ -71,6 +71,9 @@ function App() {
   const [epaperStopUrl, setEpaperStopUrl] = useState(() => {
     return localStorage.getItem('smartframe_epaper_stop_url') || 'http://192.168.0.194:8000/epaper/control/stop';
   });
+  const [epaperStatusUrl, setEpaperStatusUrl] = useState(() => {
+    return localStorage.getItem('smartframe_epaper_status_url') || 'http://192.168.0.194:8000/epaper/settings/status';
+  });
 
   // System Endpoints
   const [shutdownUrl, setShutdownUrl] = useState(() => {
@@ -107,6 +110,7 @@ function App() {
     setEpaperIntervalUrl(prev => replaceHost(prev, newIp));
     setEpaperStartUrl(prev => replaceHost(prev, newIp));
     setEpaperStopUrl(prev => replaceHost(prev, newIp));
+    setEpaperStatusUrl(prev => replaceHost(prev, newIp));
     setShutdownUrl(prev => replaceHost(prev, newIp));
     setRebootUrl(prev => replaceHost(prev, newIp));
     
@@ -133,9 +137,10 @@ function App() {
     localStorage.setItem('smartframe_epaper_interval_url', epaperIntervalUrl);
     localStorage.setItem('smartframe_epaper_start_url', epaperStartUrl);
     localStorage.setItem('smartframe_epaper_stop_url', epaperStopUrl);
+    localStorage.setItem('smartframe_epaper_status_url', epaperStatusUrl);
     localStorage.setItem('smartframe_shutdown_url', shutdownUrl);
     localStorage.setItem('smartframe_reboot_url', rebootUrl);
-  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl, epaperTextUrl, epaperDeleteUrl, epaperIntervalUrl, epaperStartUrl, epaperStopUrl, shutdownUrl, rebootUrl]);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl, epaperTextUrl, epaperDeleteUrl, epaperIntervalUrl, epaperStartUrl, epaperStopUrl, epaperStatusUrl, shutdownUrl, rebootUrl]);
 
   const getBaseUrl = (url: string) => {
     try {
@@ -269,6 +274,7 @@ function App() {
                 intervalUrl={epaperIntervalUrl}
                 startUrl={epaperStartUrl}
                 stopUrl={epaperStopUrl}
+                statusUrl={epaperStatusUrl}
               />
             )}
           </div>
@@ -330,6 +336,7 @@ function App() {
                   <EndpointSettings label="Interwał E-Papier (GET/POST)" apiUrl={epaperIntervalUrl} onUrlChange={setEpaperIntervalUrl} />
                   <EndpointSettings label="Start E-Papier (POST)" apiUrl={epaperStartUrl} onUrlChange={setEpaperStartUrl} />
                   <EndpointSettings label="Stop E-Papier (POST)" apiUrl={epaperStopUrl} onUrlChange={setEpaperStopUrl} />
+                  <EndpointSettings label="Status E-Papier (GET)" apiUrl={epaperStatusUrl} onUrlChange={setEpaperStatusUrl} />
                 </div>
               )}
 

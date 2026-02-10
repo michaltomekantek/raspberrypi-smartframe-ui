@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Image as ImageIcon, Trash2, CheckCircle2, XCircle, X, MonitorPlay, Clock, Play, Square } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, Trash2, CheckCircle2, XCircle, X, MonitorPlay, Clock, Play, Square, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface EpaperImage {
@@ -10,6 +10,15 @@ interface EpaperImage {
   added_at: string;
 }
 
+interface EpaperStatus {
+  slideshow_running: boolean;
+  remaining_seconds: number;
+  interval: number;
+  current_image: string | null;
+  next_image: string | null;
+  last_refresh: string | null;
+}
+
 interface EpaperImageListProps {
   apiUrl: string;
   showUrl: string;
@@ -17,10 +26,12 @@ interface EpaperImageListProps {
   intervalUrl: string;
   startUrl: string;
   stopUrl: string;
+  statusUrl: string;
 }
 
-const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, stopUrl }: EpaperImageListProps) => {
+const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, stopUrl, statusUrl }: EpaperImageListProps) => {
   const [images, setImages] = useState<EpaperImage[]>([]);
+  const [status, setStatus] = useState<EpaperStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingImageId, setLoadingImageId] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -44,46 +55,21 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
     }
   };
 
-  const fetchInterval = async () => {
+  const fetchStatus = async () => {
     try {
-      const response = await fetch(intervalUrl, {
+      const response = await fetch(statusUrl, {
         headers: { 'accept': 'application/json' }
       });
       if (response.ok) {
         const data = await response.json();
-        let seconds;
-        if (typeof data === 'object' && data !== null) {
-          seconds = data.interval !== undefined ? data.interval : data.seconds;
-        } else {
-          seconds = data;
-        }
-        
-        if (seconds !== undefined) {
-          setIntervalSeconds(seconds);
+        setStatus(data);
+        // Synchronizuj interwał z pola edycji, jeśli nie jest w trakcie zmiany
+        if (!settingInterval && data.interval !== undefined) {
+          setIntervalSeconds(data.interval);
         }
       }
     } catch (error) {
-      console.error("Nie udało się pobrać interwału E-Papieru");
-    }
-  };
-
-  const updateInterval = async () => {
-    setSettingInterval(true);
-    try {
-      const url = new URL(intervalUrl);
-      url.searchParams.append('seconds', intervalSeconds.toString());
-      
-      const response = await fetch(url.toString(), {
-        method: 'POST',
-        headers: { 'accept': 'application/json' }
-      });
-      
-      if (!response.ok) throw new Error('Błąd zapisu interwału');
-      toast.success(`Interwał E-Papieru ustawiony na ${intervalSeconds}s`);
-    } catch (error) {
-      toast.error("Błąd zapisu ustawień interwału");
-    } finally {
-      setSettingInterval(false);
+      console.error("Błąd pobierania statusu E-Papieru");
     }
   };
 
@@ -100,6 +86,7 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
 
       if (response.ok) {
         toast.success(type === 'start' ? "Pokaz E-Papier uruchomiony" : "Pokaz E-Papier zatrzymany");
+        fetchStatus(); // Odśwież status natychmiast
       } else {
         toast.error(`Błąd: ${response.status}`);
       }
@@ -107,6 +94,27 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
       toast.error("Błąd połączenia z ramką");
     } finally {
       setControlLoading(null);
+    }
+  };
+
+  const updateInterval = async () => {
+    setSettingInterval(true);
+    try {
+      const url = new URL(intervalUrl);
+      url.searchParams.append('seconds', intervalSeconds.toString());
+      
+      const response = await fetch(url.toString(), {
+        method: 'POST',
+        headers: { 'accept': 'application/json' }
+      });
+      
+      if (!response.ok) throw new Error('Błąd zapisu interwału');
+      toast.success(`Interwał E-Papieru ustawiony na ${intervalSeconds}s`);
+      fetchStatus();
+    } catch (error) {
+      toast.error("Błąd zapisu ustawień interwału");
+    } finally {
+      setSettingInterval(false);
     }
   };
 
@@ -167,29 +175,78 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
 
   useEffect(() => {
     fetchImages();
-    fetchInterval();
-  }, [apiUrl, intervalUrl]);
+    fetchStatus();
+    
+    // Polling statusu co 5 sekund
+    const interval = setInterval(fetchStatus, 5000);
+    return () => clearInterval(interval);
+  }, [apiUrl, statusUrl]);
 
   return (
     <div className="w-full flex flex-col gap-6">
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          onClick={() => handleControlAction('start')}
-          disabled={controlLoading !== null}
-          className="flex items-center justify-center gap-2 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-900/20"
-        >
-          {controlLoading === 'start' ? <RefreshCw size={20} className="animate-spin" /> : <Play size={20} fill="currentColor" />}
-          START
-        </button>
-        
-        <button
-          onClick={() => handleControlAction('stop')}
-          disabled={controlLoading !== null}
-          className="flex items-center justify-center gap-2 py-4 bg-red-600 hover:bg-red-500 disabled:bg-zinc-800 text-white rounded-2xl font-bold transition-all shadow-lg shadow-red-900/20"
-        >
-          {controlLoading === 'stop' ? <RefreshCw size={20} className="animate-spin" /> : <Square size={20} fill="currentColor" />}
-          STOP
-        </button>
+      <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => handleControlAction('start')}
+            disabled={controlLoading !== null || status?.slideshow_running === true}
+            className={`flex items-center justify-center gap-2 py-4 rounded-2xl font-bold transition-all shadow-lg
+              ${status?.slideshow_running === true 
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/20'}`}
+          >
+            {controlLoading === 'start' ? <RefreshCw size={20} className="animate-spin" /> : <Play size={20} fill="currentColor" />}
+            START
+          </button>
+          
+          <button
+            onClick={() => handleControlAction('stop')}
+            disabled={controlLoading !== null || status?.slideshow_running === false}
+            className={`flex items-center justify-center gap-2 py-4 rounded-2xl font-bold transition-all shadow-lg
+              ${status?.slideshow_running === false 
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
+                : 'bg-red-600 hover:bg-red-500 text-white shadow-red-900/20'}`}
+          >
+            {controlLoading === 'stop' ? <RefreshCw size={20} className="animate-spin" /> : <Square size={20} fill="currentColor" />}
+            STOP
+          </button>
+        </div>
+
+        {status && (
+          <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl animate-in fade-in duration-300">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-zinc-400">
+                <Activity size={14} />
+                <span className="text-[10px] font-bold uppercase tracking-widest">Status Pokazu</span>
+              </div>
+              <div className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tighter
+                ${status.slideshow_running ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                {status.slideshow_running ? 'W TRAKCIE' : 'ZATRZYMANY'}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-[9px] text-zinc-500 uppercase font-bold">Następne odświeżenie</p>
+                <p className="text-lg font-mono font-bold text-blue-400">
+                  {status.slideshow_running ? `${status.remaining_seconds}s` : '--'}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[9px] text-zinc-500 uppercase font-bold">Aktualne zdjęcie</p>
+                <p className="text-[10px] font-mono text-zinc-300 truncate">
+                  {status.current_image || 'Brak'}
+                </p>
+              </div>
+            </div>
+            
+            {status.last_refresh && (
+              <div className="mt-3 pt-3 border-t border-zinc-800/50 flex justify-between items-center text-[9px] text-zinc-600 font-mono">
+                <span>OSTATNIE ODŚWIEŻENIE:</span>
+                <span>{new Date(status.last_refresh).toLocaleString('pl-PL')}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="p-6 bg-zinc-900 rounded-2xl border border-zinc-800 shadow-xl">
