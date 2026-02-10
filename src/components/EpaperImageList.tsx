@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Image as ImageIcon, Trash2, CheckCircle2, XCircle, X, MonitorPlay, Clock } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, Trash2, CheckCircle2, XCircle, X, MonitorPlay, Clock, Play, Square } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface EpaperImage {
@@ -15,15 +15,18 @@ interface EpaperImageListProps {
   showUrl: string;
   deleteUrl: string;
   intervalUrl: string;
+  startUrl: string;
+  stopUrl: string;
 }
 
-const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl }: EpaperImageListProps) => {
+const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, stopUrl }: EpaperImageListProps) => {
   const [images, setImages] = useState<EpaperImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingImageId, setLoadingImageId] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [intervalSeconds, setIntervalSeconds] = useState<number>(60);
   const [settingInterval, setSettingInterval] = useState(false);
+  const [controlLoading, setControlLoading] = useState<'start' | 'stop' | null>(null);
 
   const fetchImages = async () => {
     setLoading(true);
@@ -48,7 +51,6 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl }: EpaperImag
       });
       if (response.ok) {
         const data = await response.json();
-        // Obsługa formatu {"interval": X}, {"seconds": X} lub po prostu X
         let seconds;
         if (typeof data === 'object' && data !== null) {
           seconds = data.interval !== undefined ? data.interval : data.seconds;
@@ -82,6 +84,29 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl }: EpaperImag
       toast.error("Błąd zapisu ustawień interwału");
     } finally {
       setSettingInterval(false);
+    }
+  };
+
+  const handleControlAction = async (type: 'start' | 'stop') => {
+    setControlLoading(type);
+    const url = type === 'start' ? startUrl : stopUrl;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'accept': 'application/json' },
+        body: ''
+      });
+
+      if (response.ok) {
+        toast.success(type === 'start' ? "Pokaz E-Papier uruchomiony" : "Pokaz E-Papier zatrzymany");
+      } else {
+        toast.error(`Błąd: ${response.status}`);
+      }
+    } catch (error) {
+      toast.error("Błąd połączenia z ramką");
+    } finally {
+      setControlLoading(null);
     }
   };
 
@@ -147,6 +172,26 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl }: EpaperImag
 
   return (
     <div className="w-full flex flex-col gap-6">
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => handleControlAction('start')}
+          disabled={controlLoading !== null}
+          className="flex items-center justify-center gap-2 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-900/20"
+        >
+          {controlLoading === 'start' ? <RefreshCw size={20} className="animate-spin" /> : <Play size={20} fill="currentColor" />}
+          START
+        </button>
+        
+        <button
+          onClick={() => handleControlAction('stop')}
+          disabled={controlLoading !== null}
+          className="flex items-center justify-center gap-2 py-4 bg-red-600 hover:bg-red-500 disabled:bg-zinc-800 text-white rounded-2xl font-bold transition-all shadow-lg shadow-red-900/20"
+        >
+          {controlLoading === 'stop' ? <RefreshCw size={20} className="animate-spin" /> : <Square size={20} fill="currentColor" />}
+          STOP
+        </button>
+      </div>
+
       <div className="p-6 bg-zinc-900 rounded-2xl border border-zinc-800 shadow-xl">
         <div className="flex items-center gap-3 mb-4 text-zinc-400">
           <Clock size={20} />

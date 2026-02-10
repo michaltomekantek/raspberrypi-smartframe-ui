@@ -65,6 +65,12 @@ function App() {
   const [epaperIntervalUrl, setEpaperIntervalUrl] = useState(() => {
     return localStorage.getItem('smartframe_epaper_interval_url') || 'http://192.168.0.194:8000/epaper/settings/interval';
   });
+  const [epaperStartUrl, setEpaperStartUrl] = useState(() => {
+    return localStorage.getItem('smartframe_epaper_start_url') || 'http://192.168.0.194:8000/epaper/control/start';
+  });
+  const [epaperStopUrl, setEpaperStopUrl] = useState(() => {
+    return localStorage.getItem('smartframe_epaper_stop_url') || 'http://192.168.0.194:8000/epaper/control/stop';
+  });
 
   // System Endpoints
   const [shutdownUrl, setShutdownUrl] = useState(() => {
@@ -99,6 +105,8 @@ function App() {
     setEpaperTextUrl(prev => replaceHost(prev, newIp));
     setEpaperDeleteUrl(prev => replaceHost(prev, newIp));
     setEpaperIntervalUrl(prev => replaceHost(prev, newIp));
+    setEpaperStartUrl(prev => replaceHost(prev, newIp));
+    setEpaperStopUrl(prev => replaceHost(prev, newIp));
     setShutdownUrl(prev => replaceHost(prev, newIp));
     setRebootUrl(prev => replaceHost(prev, newIp));
     
@@ -123,9 +131,11 @@ function App() {
     localStorage.setItem('smartframe_epaper_text_url', epaperTextUrl);
     localStorage.setItem('smartframe_epaper_delete_url', epaperDeleteUrl);
     localStorage.setItem('smartframe_epaper_interval_url', epaperIntervalUrl);
+    localStorage.setItem('smartframe_epaper_start_url', epaperStartUrl);
+    localStorage.setItem('smartframe_epaper_stop_url', epaperStopUrl);
     localStorage.setItem('smartframe_shutdown_url', shutdownUrl);
     localStorage.setItem('smartframe_reboot_url', rebootUrl);
-  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl, epaperTextUrl, epaperDeleteUrl, epaperIntervalUrl, shutdownUrl, rebootUrl]);
+  }, [uploadUrl, infoUrl, statsUrl, imagesUrl, intervalUrl, startUrl, stopUrl, epaperUploadUrl, epaperImagesUrl, epaperShowUrl, epaperTextUrl, epaperDeleteUrl, epaperIntervalUrl, epaperStartUrl, epaperStopUrl, shutdownUrl, rebootUrl]);
 
   const getBaseUrl = (url: string) => {
     try {
@@ -257,6 +267,8 @@ function App() {
                 showUrl={epaperShowUrl} 
                 deleteUrl={epaperDeleteUrl} 
                 intervalUrl={epaperIntervalUrl}
+                startUrl={epaperStartUrl}
+                stopUrl={epaperStopUrl}
               />
             )}
           </div>
@@ -316,6 +328,8 @@ function App() {
                   <EndpointSettings label="Usuwanie E-Papier (DELETE)" apiUrl={epaperDeleteUrl} onUrlChange={setEpaperDeleteUrl} />
                   <EndpointSettings label="Wyświetlanie E-Papier (POST)" apiUrl={epaperShowUrl} onUrlChange={setEpaperShowUrl} />
                   <EndpointSettings label="Interwał E-Papier (GET/POST)" apiUrl={epaperIntervalUrl} onUrlChange={setEpaperIntervalUrl} />
+                  <EndpointSettings label="Start E-Papier (POST)" apiUrl={epaperStartUrl} onUrlChange={setEpaperStartUrl} />
+                  <EndpointSettings label="Stop E-Papier (POST)" apiUrl={epaperStopUrl} onUrlChange={setEpaperStopUrl} />
                 </div>
               )}
 
