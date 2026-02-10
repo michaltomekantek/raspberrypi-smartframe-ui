@@ -14,8 +14,8 @@ interface EpaperStatus {
   slideshow_running: boolean;
   remaining_seconds: number;
   interval: number;
-  current_image: string | null;
-  next_image: string | null;
+  current_image: EpaperImage | null;
+  next_image: EpaperImage | null;
   last_refresh: string | null;
 }
 
@@ -63,7 +63,6 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
       if (response.ok) {
         const data = await response.json();
         setStatus(data);
-        // Synchronizuj interwał z pola edycji, jeśli nie jest w trakcie zmiany
         if (!settingInterval && data.interval !== undefined) {
           setIntervalSeconds(data.interval);
         }
@@ -86,7 +85,7 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
 
       if (response.ok) {
         toast.success(type === 'start' ? "Pokaz E-Papier uruchomiony" : "Pokaz E-Papier zatrzymany");
-        fetchStatus(); // Odśwież status natychmiast
+        fetchStatus();
       } else {
         toast.error(`Błąd: ${response.status}`);
       }
@@ -176,8 +175,6 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
   useEffect(() => {
     fetchImages();
     fetchStatus();
-    
-    // Polling statusu co 5 sekund
     const interval = setInterval(fetchStatus, 5000);
     return () => clearInterval(interval);
   }, [apiUrl, statusUrl]);
@@ -234,7 +231,7 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
               <div className="space-y-1">
                 <p className="text-[9px] text-zinc-500 uppercase font-bold">Aktualne zdjęcie</p>
                 <p className="text-[10px] font-mono text-zinc-300 truncate">
-                  {status.current_image || 'Brak'}
+                  {status.current_image?.filename || 'Brak'}
                 </p>
               </div>
             </div>
@@ -331,7 +328,6 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
         </div>
       )}
 
-      {/* Loading Overlay for Screen Refresh */}
       {loadingImageId !== null && (
         <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
           <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
@@ -342,7 +338,6 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
         </div>
       )}
 
-      {/* Lightbox Modal */}
       {selectedImage && (
         <div 
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 animate-in fade-in duration-200"
