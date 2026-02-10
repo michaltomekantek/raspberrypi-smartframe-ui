@@ -41,7 +41,14 @@ const ImageList = ({ apiUrl, baseUrl }: ImageListProps) => {
       const response = await fetch(`${baseUrl}/settings/interval`);
       if (response.ok) {
         const data = await response.json();
-        const seconds = typeof data === 'object' ? data.seconds : data;
+        // Obsługa formatu {"interval": X}, {"seconds": X} lub po prostu X
+        let seconds;
+        if (typeof data === 'object' && data !== null) {
+          seconds = data.interval !== undefined ? data.interval : data.seconds;
+        } else {
+          seconds = data;
+        }
+
         if (seconds !== undefined) {
           setIntervalSeconds(seconds);
         }
