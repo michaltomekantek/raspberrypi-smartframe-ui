@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Image as ImageIcon, Trash2, CheckCircle2, XCircle, X, MonitorPlay } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, Trash2, CheckCircle2, XCircle, X, MonitorPlay, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface EpaperImage {
@@ -14,13 +14,16 @@ interface EpaperImageListProps {
   apiUrl: string;
   showUrl: string;
   deleteUrl: string;
+  intervalUrl: string;
 }
 
-const EpaperImageList = ({ apiUrl, showUrl, deleteUrl }: EpaperImageListProps) => {
+const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl }: EpaperImageListProps) => {
   const [images, setImages] = useState<EpaperImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingImageId, setLoadingImageId] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [intervalSeconds, setIntervalSeconds] = useState<number>(60);
+  const [settingInterval, setSettingInterval] = useState(false);
 
   const fetchImages = async () => {
     setLoading(true);
@@ -35,6 +38,41 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl }: EpaperImageListProps) =
       toast.error("Nie udało się pobrać zdjęć E-Papieru");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInterval = async () => {
+    try {
+      const response = await fetch(intervalUrl, {
+        headers: { 'accept': 'application/json' }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const seconds = typeof data === 'object' ? data.seconds : data;
+        setIntervalSeconds(seconds);
+      }
+    } catch (error) {
+      console.error("Nie udało się pobrać interwału E-Papieru");
+    }
+  };
+
+  const updateInterval = async () => {
+    setSettingInterval(true);
+    try {
+      const url = new URL(intervalUrl);
+      url.searchParams.append('seconds', intervalSeconds.toString());
+      
+      const response = await fetch(url.toString(), {
+        method: 'POST',
+        headers: { 'accept': 'application/json' }
+      });
+      
+      if (!response.ok) throw new Error('Błąd zapisu interwału');
+      toast.success(`Interwał E-Papieru ustawiony na ${intervalSeconds}s`);
+    } catch (error) {
+      toast.error("Błąd zapisu ustawień interwału");
+    } finally {
+      setSettingInterval(false);
     }
   };
 
@@ -95,10 +133,34 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl }: EpaperImageListProps) =
 
   useEffect(() => {
     fetchImages();
-  }, [apiUrl]);
+    fetchInterval();
+  }, [apiUrl, intervalUrl]);
 
   return (
-    <div className="w-full flex flex-col gap-4">
+    <div className="w-full flex flex-col gap-6">
+      <div className="p-6 bg-zinc-900 rounded-2xl border border-zinc-800 shadow-xl">
+        <div className="flex items-center gap-3 mb-4 text-zinc-400">
+          <Clock size={20} />
+          <h3 className="font-bold uppercase tracking-wider text-sm">Interwał E-Papieru</h3>
+        </div>
+        <div className="flex gap-3">
+          <input
+            type="number"
+            value={intervalSeconds}
+            onChange={(e) => setIntervalSeconds(parseInt(e.target.value) || 0)}
+            className="flex-1 bg-black/40 border border-zinc-800 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-blue-500 text-white"
+            placeholder="Sekundy"
+          />
+          <button
+            onClick={updateInterval}
+            disabled={settingInterval}
+            className="px-6 bg-zinc-100 text-black hover:bg-white rounded-xl font-bold text-xs transition-all disabled:opacity-50"
+          >
+            {settingInterval ? "ZAPIS..." : "USTAW"}
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between px-2">
         <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Biblioteka E-Papier ({images.length})</h3>
         <button onClick={fetchImages} className="p-2 text-zinc-500 hover:text-white transition-colors">
