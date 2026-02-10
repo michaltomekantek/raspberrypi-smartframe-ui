@@ -175,7 +175,8 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
   useEffect(() => {
     fetchImages();
     fetchStatus();
-    const interval = setInterval(fetchStatus, 5000);
+    // Odświeżanie statusu co 20 sekund
+    const interval = setInterval(fetchStatus, 20000);
     return () => clearInterval(interval);
   }, [apiUrl, statusUrl]);
 
@@ -230,9 +231,16 @@ const EpaperImageList = ({ apiUrl, showUrl, deleteUrl, intervalUrl, startUrl, st
               </div>
               <div className="space-y-1">
                 <p className="text-[9px] text-zinc-500 uppercase font-bold">Aktualne zdjęcie</p>
-                <p className="text-[10px] font-mono text-zinc-300 truncate">
-                  {status.current_image?.filename || 'Brak'}
-                </p>
+                <div className="flex items-center gap-2">
+                  {status.current_image && (
+                    <div className="w-8 h-8 rounded bg-zinc-800 border border-zinc-700 overflow-hidden shrink-0">
+                      <img src={status.current_image.url} alt="Current" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                  <p className="text-[10px] font-mono text-zinc-300 truncate">
+                    {status.current_image?.filename || 'Brak'}
+                  </p>
+                </div>
               </div>
             </div>
             
